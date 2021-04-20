@@ -2,13 +2,14 @@
 ---
 
 ## **Current TODOs**
-\* NS = Not Started; IP = In Progress; C = Completed; RN = Revision Needed; IRP = In Research Progress
-TASK | COMPLETION
-- | -
+<sub>NS = Not Started; IP = In Progress; C = Completed; RN = Revision Needed; IRP = In Research Progress</sub>
+| TASK | COMPLETION |
+| :-: | :-: |
 Create RawMid generation algorithm | IP
 Create RawMid to MIDI parser | NS
 Create MIDI synthesizing algorithm | NS
 Create training environment | IRP
+
 last updated: 4-19-2021*
 
 ## Dev Notes:
