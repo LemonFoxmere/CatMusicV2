@@ -1,6 +1,13 @@
 import os
 import math
 import numpy as np
+from termcolor import colored
+import argparse
+from tqdm import tqdm
+
+parser = argparse.ArgumentParser()
+parser.add_argument("-s", '--samplesize', required=True, help="How much RawMids should be generated as a result", type=int)
+args = vars(parser.parse_args())
 
 def generate_chord(note_count):
     chord = []
@@ -47,7 +54,22 @@ def generate_sample(chord_count, rep_epsilon, rep_epsilon_decay, gap_epsilon, ga
             chord = generate_chord(note_count)
             return [np.array(chord)] + generate_sample(chord_count-1, rep_epsilon+rep_epsilon_decay, rep_epsilon_decay, gap_epsilon+gap_epsilon_decay/2, gap_epsilon_decay, last_chord=chord)
 
-for i in generate_sample(10, 0.65, 0.1, 0.4, 0.1):
-    print(i.tolist())
+# data geneartion
+sample_size = args['samplesize']
+absolute_path = os.path.join('..','..')
+dir_name = os.path.join(absolute_path, 'data', 'rawMid')
+try:
+    os.makedirs(os.path.join(absolute_path, 'data', 'rawMid'))
+    print(colored("Successfully opened directory. {dir_name} was created".format(**locals()), 'green'))
+except FileExistsError:
+    print(colored("Write path {dir_name} already exists. Opening path.".format(**locals()), 'yellow'))
 
-# TODO: create file output geneartion
+print(colored('Path opened. Generating {sample_size} RawMids'.format(**locals()), 'green'))
+for i in tqdm(range(sample_size)):
+    data = list(map(lambda x : str(x.tolist())[1:-1].replace(',',''), generate_sample(10, 0.65, 0.1, 0.4, 0.1)))
+    fin = open(os.path.join( dir_name , '{i}.rawMid'.format(**locals()) ), 'w')
+    for sample in data:
+        fin.write(sample + '\n')
+    fin.write('eof')
+    fin.close()
+print(colored('Program Finished. Generated {sample_size} RawMids'.format(**locals()), 'green'))
