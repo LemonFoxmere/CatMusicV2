@@ -2,17 +2,17 @@
 ---
 
 ## **Current TODOs**
-<sub>NS = Not Started; IP = In Progress; C = Completed; CNT = Completed but needs tweak; RN = Revision Needed; IRP = In Research Progress</sub>
+<sub>NS = Not Started; IP = In Progress; I = Issues; C = Completed; CNT = Completed but needs tweak; RN = Revision Needed; IRP = In Research Progress</sub>
 | TASK | COMPLETION |
 | :-: | :-: |
 Create RawMid Generation Algorithm | CNT
-Create RawMid to MIDI Parser | IP
-Create MIDI Synthesizing Algorithm | IP
+Create RawMid to MIDI Parser | I
+Create MIDI Synthesizing Algorithm | C
 Create WAV Parser for Neural Net | NS
 Create Training Dataset Matching Algorithm | NS
 Create Training Environment | IRP
 
-last updated: 4-21-2021*
+last updated: 4-22-2021*
 
 ## Dev Notes:
 * Trim all data to 88 notes instead of the traditional 128

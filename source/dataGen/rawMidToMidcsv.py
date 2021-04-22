@@ -89,13 +89,19 @@ for line in fin:
     if(line == 'eof'): break
     data.append(np.array(list(map(int, line.split()))))
 control_data = parse_raw_midi(data)
+
+# ISSUE 1: This code segment does not work
+# Details: All generation of the first 5 instrument is successful, but the last iteration results in blank file.
+# To reproduce this error, use Atom's hydrogen plugin and run the code from top. Following any instructions resulted from errors as necessary
 for i in range(6):
     # generate csv with unique instrument types
     csv = generateCsvMidHeader(i, 500000)
-    fout = open(os.path.join(output_dir_name, file_list[0]+'_{i}'.format(**locals())), 'w')
+    prefix = file_list[0].split('.')[0]
+    fout = open(os.path.join(output_dir_name, '{prefix}_{i}.csv'.format(**locals())), 'w')
     final_csv = '\n'.join(csv + control_data + ['0,0,End_of_file'])
     fout.write(final_csv)
 
 for file in tqdm(file_list):
     # TODO: generate all csvMids after verification that the parsed data actually works
+    # ONLY COMPLETE AFTER GENERATION CODE IS COMPLETE
     pass
