@@ -2,13 +2,15 @@
 ---
 
 ## **Current TODOs**
-<sub>NS = Not Started; IP = In Progress; C = Completed; RN = Revision Needed; IRP = In Research Progress</sub>
+<sub>NS = Not Started; IP = In Progress; C = Completed; CNT = Completed but needs tweak; RN = Revision Needed; IRP = In Research Progress</sub>
 | TASK | COMPLETION |
 | :-: | :-: |
-Create RawMid generation algorithm | RN
-Create RawMid to MIDI parser | IP
-Create MIDI synthesizing algorithm | NS
-Create training environment | IRP
+Create RawMid Generation Algorithm | CNT
+Create RawMid to MIDI Parser | IP
+Create MIDI Synthesizing Algorithm | IP
+Create WAV Parser for Neural Net | NS
+Create Training Dataset Matching Algorithm | NS
+Create Training Environment | IRP
 
 last updated: 4-21-2021*
 
@@ -61,6 +63,11 @@ last updated: 4-21-2021*
 * As discussed earlier, the shortest possible note duration is 125ms, or 5500 samples
     * Therefore, it is unnecessary to group data together smaller than that section
     * TODO: Test how well margin overlapping will work within training, and how classifications are effected.
+
+#### Synchronization of rawMid and WAV
+* Absolute time is based on 1/16th of a MIDI clock. Calculation are as follow:
+    * clock_duration (seconds) = ((tempo/1,000,000)/24)/16
+    * clock_passage_duration (seconds) = clock_period * clock_repetition
 
 ## End of Overall Plan
 ---

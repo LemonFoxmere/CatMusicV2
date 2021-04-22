@@ -65,6 +65,7 @@ except FileExistsError:
     print(colored("Write path {dir_name} already exists. Opening path.".format(**locals()), 'yellow'))
 
 print(colored('Path opened. Generating {sample_size} RawMids'.format(**locals()), 'green'))
+total_size = 0
 for i in tqdm(range(sample_size)):
     data = list(map(lambda x : str(x.tolist())[1:-1].replace(',',''), generate_sample(10, 0.65, 0.1, 0.4, 0.1)))
     fin = open(os.path.join( dir_name , '{i}.rawMid'.format(**locals()) ), 'w')
@@ -72,4 +73,5 @@ for i in tqdm(range(sample_size)):
         fin.write(sample + '\n')
     fin.write('eof')
     fin.close()
-print(colored('Program Finished. Generated {sample_size} RawMids'.format(**locals()), 'green'))
+    total_size += os.path.getsize(os.path.join( dir_name , '{i}.rawMid'.format(**locals()) ))
+print(colored('Program Finished. Generated {sample_size} RawMids, totalling {total_size} bytes.'.format(**locals()), 'green'))

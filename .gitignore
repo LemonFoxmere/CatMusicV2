@@ -129,4 +129,5 @@ dmypy.json
 .pyre/
 
 # Custom
-data/*
+data/rawMid/*
+data/csvMid/*
