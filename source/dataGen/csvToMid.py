@@ -33,4 +33,4 @@ for file in tqdm(files):
     # execute conversion with csvmidi. The user must have this installed and path configured in order to run this geneartion code successfully
     os.system(command)
 
-print(colored('SUCESS: All CSV files are converted to MIDs without any errors', 'green'))
+print(colored('Program Finished. All files are converted without any errors', 'green'))

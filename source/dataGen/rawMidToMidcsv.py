@@ -82,26 +82,23 @@ tempo = 500000
 clock_duration = ((tempo/1000000)/24)/16
 seconds_to_clock = lambda x : math.floor(x/clock_duration) # calculate how much the clock will fire within a certain duration
 
-# begin parsing
-fin = open(os.path.join(input_dir_name, file_list[0]))
-data = []
-for line in fin:
-    if(line == 'eof'): break
-    data.append(np.array(list(map(int, line.split()))))
-control_data = parse_raw_midi(data)
-
-# ISSUE 1: This code segment does not work
-# Details: All generation of the first 5 instrument is successful, but the last iteration results in blank file.
-# To reproduce this error, use Atom's hydrogen plugin and run the code from top. Following any instructions resulted from errors as necessary
-for i in range(6):
-    # generate csv with unique instrument types
-    csv = generateCsvMidHeader(i, 500000)
-    prefix = file_list[0].split('.')[0]
-    fout = open(os.path.join(output_dir_name, '{prefix}_{i}.csv'.format(**locals())), 'w')
-    final_csv = '\n'.join(csv + control_data + ['0,0,End_of_file'])
-    fout.write(final_csv)
-
 for file in tqdm(file_list):
-    # TODO: generate all csvMids after verification that the parsed data actually works
-    # ONLY COMPLETE AFTER GENERATION CODE IS COMPLETE
-    pass
+    # begin parsing
+    fin = open(os.path.join(input_dir_name, file))
+    data = []
+    for line in fin: # read in every line into data
+        if(line == 'eof'): break
+        data.append(np.array(list(map(int, line.split()))))
+    control_data = parse_raw_midi(data)
+
+    for i in range(6):
+        # generate csv with unique instrument types
+        csv = generateCsvMidHeader(i, 500000) # genearte the header
+        prefix = file.split('.')[0] # obtain file prefix
+        fout = open(os.path.join(output_dir_name, '{prefix}_{i}.csv'.format(**locals())), 'w')
+        final_csv = '\n'.join(csv + control_data + ['0,0,End_of_file']) # add control data
+        fout.write(final_csv)
+        fout.close()
+    # finish 1 file iteration
+
+print(colored('Program Finished. All data parsed without any errors', 'green'))

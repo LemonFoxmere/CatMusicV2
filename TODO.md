@@ -5,9 +5,10 @@
 <sub>NS = Not Started; IP = In Progress; I = Issues; C = Completed; CNT = Completed but needs tweak; RN = Revision Needed; IRP = In Research Progress</sub>
 | TASK | COMPLETION |
 | :-: | :-: |
-Create RawMid Generation Algorithm | CNT
-Create RawMid to MIDI Parser | I
+Create RawMid Generation Algorithm | C
+Create RawMid to MIDI Parser | C
 Create MIDI Synthesizing Algorithm | C
+Create MIDI to WAV converter | IP
 Create WAV Parser for Neural Net | NS
 Create Training Dataset Matching Algorithm | NS
 Create Training Environment | IRP
