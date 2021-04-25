@@ -132,3 +132,4 @@ dmypy.json
 data/rawMid/*
 data/csvMid/*
 data/mid/*
+data/wav/*

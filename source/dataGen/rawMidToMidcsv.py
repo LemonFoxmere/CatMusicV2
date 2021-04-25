@@ -56,8 +56,7 @@ def parse_raw_midi(raw_mid, last_chord=None, time_stamp=0):
 
 # check if raw data available
 print('Attempting to open rawMid file path')
-# absolute_path = os.path.join('..','..')
-absolute_path = os.path.join('/home/lemonorange/catRemixV2')
+absolute_path = os.path.join('..','..')
 input_dir_name = os.path.join(absolute_path, 'data', 'rawMid')
 if(not os.path.exists(input_dir_name)): # check if path exists
     raise FileExistsError('Input path not found. You must generate all rawMid files first with \"genRawMid.py\"!')

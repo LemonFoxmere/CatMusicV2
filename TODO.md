@@ -2,14 +2,16 @@
 ---
 
 ## **Current TODOs**
-<sub>NS = Not Started; IP = In Progress; I = Issues; C = Completed; CNT = Completed but needs tweak; RN = Revision Needed; IRP = In Research Progress</sub>
+`<sub>NS = Not Started; IP = In Progress; I = Issues; C = Completed; CNT = Completed but needs tweak; RN = Revision Needed; IRP = In Research Progress</sub>`
 | TASK | COMPLETION |
 | :-: | :-: |
 Create RawMid Generation Algorithm | C
 Create RawMid to MIDI Parser | C
 Create MIDI Synthesizing Algorithm | C
-Create MIDI to WAV converter | IP
-Create WAV Parser for Neural Net | NS
+Create MIDI to WAV converter | C
+Create WAV Parser for Neural Net | IP
+Create Data Synchronizer | IP
+Create Neural Network | NS
 Create Training Dataset Matching Algorithm | NS
 Create Training Environment | IRP
 
@@ -19,6 +21,10 @@ last updated: 4-22-2021*
 * Trim all data to 88 notes instead of the traditional 128
 * Continue experimenting using BLSTM and LSTM, and comparing their effectiveness
 * Normalize input in range [-1, 1]
+* Make absolute sure that the rawMidis are trimmed before Training
+    * Timidity++ Synthesizer does not take into account of the initial 0s
+    * Thus if we use data that does not start immediatly, there WILL be synchronization problems, which lead to the neural network under performing.
+    * Check [FIGURE_1.png*](https://lemonorangewastaken.github.io/CatMusicV2/references/graphs/Figure_1.png) for more details
 
 ---
 ## Overall Plan (V2):
@@ -69,6 +75,13 @@ last updated: 4-22-2021*
 * Absolute time is based on 1/16th of a MIDI clock. Calculation are as follow:
     * clock_duration (seconds) = ((tempo/1,000,000)/24)/16
     * clock_passage_duration (seconds) = clock_period * clock_repetition
+* Make absolute sure that the rawMidis are trimmed before Training
+    * Timidity++ Synthesizer does not take into account of the initial 0s
+    * Thus if we use data that does not start immediatly, there WILL be synchronization problems, which lead to the neural network under performing.
+    * Check [FIGURE_1.png*](https://lemonorangewastaken.github.io/CatMusicV2/references/graphs/Figure_1.png) for more details
+* REMINDER
+    * Reverb may also be needed for consideration as sample offsets
+        * So instead of taking in 5500 samples (125ms) per batch, we will take in for example 6500 samples (147.39ms)
 
 ## End of Overall Plan
 ---
@@ -89,7 +102,8 @@ This function attempts to scale down the CATCSE values as the deviation gets sma
 #### Research Journal 4-10 (V1):
 Stacked LSTM models are created to improve efficiency, and a basic sense of rhythm and composition is detected. The suspecting failure point is the poor matching algorithm chosen for the generated output set and ground truth data set. The custom loss is abandoned for its inefficiency in classifying larger sequential multi-label datasets, and instead binary_crossentropy is used. Softmax as the output activation is also abandoned in replace of sigmoid, which is not based on a probabilistic model, thus being more efficient in multi-label classification.
 
+
 ---
 For all references on my research and stuff, look in the `references` folder.\
 This is a continuation of CatMusicV1. You can check out the deprecated repo [here](https://github.com/LemonOrangeWasTaken/CatMusic).\
-Copyright (c) 2021 Lemon Orange
+*Copyright (c) 2021 Lemon Orange*
