@@ -26,7 +26,7 @@ absolute_path = os.path.join('/home/lemonorange/catRemixV2')
 wav_input_dir_name = os.path.join(absolute_path, 'data', 'wav')
 rawMid_input_dir_name = os.path.join(absolute_path, 'data', 'rawMid')
 files = os.listdir(wav_input_dir_name)
-file = files[0]
+file = files[1]
 file_path = os.path.join(wav_input_dir_name, file)
 Fs, data = wavFile.read(file_path)
 size = int(Fs * 0.125)
@@ -42,7 +42,7 @@ for i in fin:
     if(i == 'eof'): break
     raw_data.append(list(map(int,i.strip('\n').split())))
 
-plt.plot(normalize(data, 0, 300), color='green', label='Raw Audio')
+plt.plot(normalize(data, -100, 300), color='green', label='Raw Audio')
 
 sum_raw_data = list(map(sum, raw_data))
 thing = []
@@ -57,8 +57,9 @@ for i in sum_raw_data:
         if(trimmed == True or i != 0):
             thing_trimmed.append(i)
             trimmed = True
+
 plt.plot(thing, color='red', label='Raw Mids')
 plt.plot(thing_trimmed, color='blue', label='Trimmed Raw Mids')
-plt.title(label='Synchronization of MID and Audio. Using {file}'.format(**locals()))
+plt.title(label='Synchronization of MID and Audio (WAV normalized and MIDI summed).')
 plt.legend()
 plt.show()

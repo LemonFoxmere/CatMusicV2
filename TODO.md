@@ -9,13 +9,14 @@ Create RawMid Generation Algorithm | C
 Create RawMid to MIDI Parser | C
 Create MIDI Synthesizing Algorithm | C
 Create MIDI to WAV converter | C
+Test Synchronizer | C 
 Create WAV Parser for Neural Net | IP
 Create Data Synchronizer | IP
 Create Neural Network | NS
 Create Training Dataset Matching Algorithm | NS
 Create Training Environment | IRP
 
-last updated: 4-22-2021*
+last updated: 4-24-2021*
 
 ## Dev Notes:
 * Trim all data to 88 notes instead of the traditional 128
