@@ -9,12 +9,13 @@ Create RawMid Generation Algorithm | C
 Create RawMid to MIDI Parser | C
 Create MIDI Synthesizing Algorithm | C
 Create MIDI to WAV converter | C
-Test Synchronizer | C 
+Test Synchronizer | C
 Create WAV Parser for Neural Net | IP
 Create Data Synchronizer | IP
 Create Neural Network | NS
 Create Training Dataset Matching Algorithm | NS
 Create Training Environment | IRP
+Test Down Sampling effect | NS
 
 last updated: 4-24-2021*
 
@@ -26,6 +27,8 @@ last updated: 4-24-2021*
     * Timidity++ Synthesizer does not take into account of the initial 0s
     * Thus if we use data that does not start immediatly, there WILL be synchronization problems, which lead to the neural network under performing.
     * Check [FIGURE_1.png*](https://lemonorangewastaken.github.io/CatMusicV2/references/graphs/Figure_1.png) for more details
+* Down sampling the WAV input may result in better abstraction and classification; Need tests.
+* When MID ends, any reverb/sustain that Timitdity++ will be cut off, as it does not contribute to training as much as it should; Need tests.
 
 ---
 ## Overall Plan (V2):

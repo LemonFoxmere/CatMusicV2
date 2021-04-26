@@ -31,6 +31,8 @@ file_path = os.path.join(wav_input_dir_name, file)
 Fs, data = wavFile.read(file_path)
 size = int(Fs * 0.125)
 
+data.shape
+
 Audio(data[0:size], rate=Fs)
 
 prefix = file.split('_')[0]
