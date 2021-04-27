@@ -10,14 +10,15 @@ Create RawMid to MIDI Parser | C
 Create MIDI Synthesizing Algorithm | C
 Create MIDI to WAV converter | C
 Test Synchronizer | C
-Create WAV Parser for Neural Net | IP
-Create Data Synchronizer | IP
-Create Neural Network | NS
-Create Training Dataset Matching Algorithm | NS
-Create Training Environment | IRP
+Create WAV Parser for Neural Net | C
+Create Data Synchronizer | RN
+Create Training Dataset Matching Algorithm | RN
+Create Data Partitioning System | C
+Create Neural Network Architecture | NS
+Create Training Environment | IP
 Test Down Sampling effect | NS
 
-last updated: 4-24-2021*
+last updated: 4-26-2021*
 
 ## Dev Notes:
 * Trim all data to 88 notes instead of the traditional 128
@@ -29,6 +30,8 @@ last updated: 4-24-2021*
     * Check [FIGURE_1.png*](https://lemonorangewastaken.github.io/CatMusicV2/references/graphs/Figure_1.png) for more details
 * Down sampling the WAV input may result in better abstraction and classification; Need tests.
 * When MID ends, any reverb/sustain that Timitdity++ will be cut off, as it does not contribute to training as much as it should; Need tests.
+* As of writing, 99.4% will be training data, 0.5% testing data, 0.1% validation data
+* Things like early stopping and loss + accuracy tracking must also be implemented
 
 ---
 ## Overall Plan (V2):

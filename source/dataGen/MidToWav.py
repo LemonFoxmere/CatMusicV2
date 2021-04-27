@@ -3,8 +3,8 @@ import math
 from termcolor import colored
 from tqdm import tqdm
 
-# absolute_path = os.path.join('..','..')
-absolute_path = os.path.join('/home/lemonorange/catRemixV2')
+absolute_path = os.path.join('..','..')
+# absolute_path = os.path.join('/home/lemonorange/catRemixV2')
 input_dir_name = os.path.join(absolute_path, 'data', 'mid')
 print('Attempting to open mid file path')
 if(not os.path.exists(input_dir_name)): # check if path exists
