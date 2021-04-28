@@ -11,14 +11,21 @@ Create MIDI Synthesizing Algorithm | C
 Create MIDI to WAV converter | C
 Test Synchronizer | C
 Create WAV Parser for Neural Net | C
-Create Data Synchronizer | RN
-Create Training Dataset Matching Algorithm | RN
+Create Data Synchronizer | C
+Create Training Dataset Matching Algorithm | C
+Create Multi-hot Encoder | C
 Create Data Partitioning System | C
-Create Neural Network Architecture | NS
-Create Training Environment | IP
+Create Neural Network Architecture | RN
+Create BPTT Algorithm | IP
+Create Data Feed in algorithm | NS
+Create Early Stopping System | NS
+Create Loss Tracker | NS
+Create [Accuracy Tracker*](https://stats.stackexchange.com/questions/12702/what-are-the-measure-for-accuracy-of-multilabel-data#168952) | NS
+Test Training Effectiveness | NS
 Test Down Sampling effect | NS
+Test Data Efficiency on Training | NS
 
-last updated: 4-26-2021*
+last updated: 4-27-2021*
 
 ## Dev Notes:
 * Trim all data to 88 notes instead of the traditional 128
@@ -27,11 +34,20 @@ last updated: 4-26-2021*
 * Make absolute sure that the rawMidis are trimmed before Training
     * Timidity++ Synthesizer does not take into account of the initial 0s
     * Thus if we use data that does not start immediatly, there WILL be synchronization problems, which lead to the neural network under performing.
-    * Check [FIGURE_1.png*](https://lemonorangewastaken.github.io/CatMusicV2/references/graphs/Figure_1.png) for more details
+    * Check [FIGURE_1.png*](https://lemonorangewastaken.github.io/CatMusicV2/references/graphs/Figure_1.png) and [FIGURE_2.png*](https://lemonorangewastaken.github.io/CatMusicV2/references/graphs/Figure_2.png) for more details
 * Down sampling the WAV input may result in better abstraction and classification; Need tests.
 * When MID ends, any reverb/sustain that Timitdity++ will be cut off, as it does not contribute to training as much as it should; Need tests.
 * As of writing, 99.4% will be training data, 0.5% testing data, 0.1% validation data
 * Things like early stopping and loss + accuracy tracking must also be implemented
+* IMPORTANT: All generated MIDs are ranged from 0-87 (length 88), while the generation bumps that number up to 21-98 (length 88) within the domain of 0-127 (length 128) as per MIDI standards.
+    * BUG
+    * RawMid generation algorithm only produced 87 usable notes, with the note `0` being used to indicate silence.
+    * However due to development during 3AM again, the CSV generation checks if the first element of the chord is `0` to see if it represents silence or note
+    * This means that any chord starting with `0` will be considered silent, even if it is not. The chance of it occuring is not big but it is there
+    * Therefore, during the generation of the multi-hot labeling, precaution must be taken to see if the chord starts with `0` or not
+        * If it does, discard the chord and return a blank vector, keep otherwise. THE CSV GENERATOR ONLY LOOKS AT THE FIRST NOTE IN EACH CHORD FOR DETERMINATION
+        * SILENCE MUST BE REPRESENTED WITH A BLANK VECTOR, AS THE NOTE 0 IN MOST CASES WILL STILL REPRESENT A NOTE INSTEAD OF A SILENCE.
+    * stupid design choice I know, but I've gone so far into this without checking I might as well just go forward with this. The training set will not be severely affected from this, but it will act as a slight annoyance.
 
 ---
 ## Overall Plan (V2):

@@ -15,7 +15,7 @@ class datasync:
             if(trimmed == True or i[0] != 0):
                 result.append(i)
                 trimmed = True
-        return np.array(result)
+        return result
 
     # create a set of training and label data
     # TODO: VERIFY
@@ -23,14 +23,16 @@ class datasync:
     def sync_data(train, label, chunk_length, chunk_duration=0.125, rate=44000):
         # calculate the amount of wavSamples per chunk
         chunk_size = int(rate * chunk_duration)
-        data_set = []
+        train_set = []
+        label_set = []
         for i in range(chunk_length-1):
             range_start = i * chunk_size
             range_end = (i+1) * chunk_size
-            train_chunk = train[range_start, range_end]
+            train_chunk = train[range_start : range_end]
             label_chunk = label[i]
-            data_set.append(np.array([label_chunk, train_chunk]))
-        return np.array(np.array(data_set))
+            train_set.append(train_chunk)
+            label_set.append(label_chunk)
+        return train_set, label_set
 
 class loader:
     # Math stuff
@@ -53,7 +55,7 @@ class loader:
         try:
             Fs, data = wavFile.read(file_path)
         except:
-            print(colored('Error: Failed to open {input_file_name} as input! This file either does not exist or has internal errors and cannot be read.'.format(**locals()), 'red'))
+            print(colored('Error: Failed to open \"{input_file_name}\" as input! This file either does not exist or has internal errors and cannot be read.'.format(**locals()), 'red'))
             return -1 # if opening failed, return a -1 as error indication
         # check if normalization is wanted or not
         if(norm):
@@ -68,11 +70,28 @@ class loader:
         try:
             fin = open(file_path) # try to open label file
         except:
-            print(colored('Error: Failed to open {label_file_name} as output! This file probably does not exist.'.format(**locals()), 'red'))
+            print(colored('Error: Failed to open \"{label_file_name}\" as output! This file probably does not exist.'.format(**locals()), 'red'))
             return -1 # if opening failed, return a -1 as error indication
         # if opening successful, continue with parsing
         raw_data = []
         for i in fin: # add in all data lines except for eof in the file
             if(i == 'eof'): break
             raw_data.append(np.array(list(map(int,i.strip('\n').split()))))
-        return np.array(raw_data) # processed data
+        return raw_data # processed data
+
+    @staticmethod
+    def encode_multihot(arr, encoding_size=88):
+        # assuming that the given array is in the domain of 0-87, we can directly map each note to a one in a [encoding_size,] sized vector of 0s
+        # any chord that starts with 0s will be considered silence due to the featuer in rawMidi parser. Check README.md for more details
+        # first check bound errors
+        min_arr = min(arr)
+        max_arr = max(arr)
+        if(max_arr > encoding_size-1 or min_arr < 0):
+            raise RuntimeError('Array max and/or min values exceed encoding size. Max: {max_arr}, min: {min_arr}, encoding_size: {encoding_size}'.format(**locals()))
+        # start encoding process
+        result = np.zeros(88, dtype=np.float32)
+        if(arr[0] == 0):
+            return result
+        for i in arr:
+            result[i] = 1
+        return result
