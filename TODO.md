@@ -2,7 +2,7 @@
 ---
 
 ## **Current TODOs**
-`<sub>NS = Not Started; IP = In Progress; I = Issues; C = Completed; CNT = Completed but needs tweak; RN = Revision Needed; IRP = In Research Progress</sub>`
+<sub>NS = Not Started; IP = In Progress; I = Issues; C = Completed; CNT = Completed but needs tweak; RN = Revision Needed; IRP = In Research Progress</sub>
 | TASK | COMPLETION |
 | :-: | :-: |
 Create RawMid Generation Algorithm | C

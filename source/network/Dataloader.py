@@ -80,18 +80,22 @@ class loader:
         return raw_data # processed data
 
     @staticmethod
-    def encode_multihot(arr, encoding_size=88):
+    def encode_multihot(arrs, encoding_size=88):
         # assuming that the given array is in the domain of 0-87, we can directly map each note to a one in a [encoding_size,] sized vector of 0s
         # any chord that starts with 0s will be considered silence due to the featuer in rawMidi parser. Check README.md for more details
         # first check bound errors
-        min_arr = min(arr)
-        max_arr = max(arr)
-        if(max_arr > encoding_size-1 or min_arr < 0):
-            raise RuntimeError('Array max and/or min values exceed encoding size. Max: {max_arr}, min: {min_arr}, encoding_size: {encoding_size}'.format(**locals()))
-        # start encoding process
-        result = np.zeros(88, dtype=np.float32)
-        if(arr[0] == 0):
-            return result
-        for i in arr:
-            result[i] = 1
-        return result
+        final_result = []
+        for arr in arrs:
+            min_arr = min(arr)
+            max_arr = max(arr)
+            if(max_arr > encoding_size-1 or min_arr < 0):
+                raise RuntimeError('Array max and/or min values exceed encoding size. Max: {max_arr}, min: {min_arr}, encoding_size: {encoding_size}'.format(**locals()))
+            # start encoding process
+            result = np.zeros(88, dtype=np.float32)
+            if(arr[0] == 0):
+                final_result.append(result)
+                continue
+            for i in arr:
+                result[i] = 1
+            final_result.append(result)
+        return final_result

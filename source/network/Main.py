@@ -98,15 +98,83 @@ loss_list = [
     tf.losses.mean_absolute_error,
     tf.nn.sigmoid_cross_entropy_with_logits,
 ]
+loss_label = [ # how the loss functions will be named when displayed on a graph
+    'Binary_CSE',
+    'Categorical_CSE',
+    'Mean Squared Error',
+    'Mean Absolute Error',
+    'sigmoid_CSE_with_Logits',
+]
 default_loss_index = 0
 
+opt_list = [
+    Adam,
+    SGD,
+    RMSprop,
+    Adagrad
+]
+default_opt = opt_list[0]
+
+# ==================== RECORDING PROCESS ====================
+def write_loss(losses, labels, fout):
+    i = 0
+    write_out = ''
+    for loss in losses:
+        line = str(np.mean(loss.numpy().tolist()))
+        write_out += labels[i]+'='
+        write_out += line if line != 'nan' else '-1'
+        write_out += ';'
+        i+=1
+    write_out += '\n'
+    fout.write(write_out)
+
 # ==================== TRAINING PROCESS ====================
-def train_step(input, ground_truth, model):
+def train_step(input, ground_truth, model, train_fout=None, val_fout=None): # training input and ground truth should already be synchronized and encoded
+    # fout is there for if we want to record the loss data
+    # get a validation set
+    validation_input_name = np.random.choice(validation_files)
+    # parse the validation set
+    validation_input = loader.parse_input(validation_input_name, input_path)
+    validation_output = sync.trim_front(loader.parse_label(validation_input_name, ground_truth_data_path))
+    val_input, val_label = sync.sync_data(validation_input, validation_output, len(validation_output))
+    val_label = loader.encode_multihot(val_label) # encode to multi-hot
+
     with tf.GradientTape() as tape:
-        pass
-        # TODO: implement BPTT
+        # generate the predictions
+        training_prediction = model(input)
+        validation_prediction = model(val_input)
+
+        # it is garenteed the ground truth and prediction will have the same shape
+        training_losses = [x(ground_truth, training_prediction) for x in loss_list]
+        validation_losses = [x(val_label, validation_prediction) for x in loss_list]
+        applicable_loss = training_losses[default_loss_index]
+        visible_loss = validation_losses[default_loss_index]
+
+        # store loss
+        if(train_fout != None):
+            write_loss(training_losses, loss_label, train_fout)
+        if(val_fout != None):
+            write_loss(validation_losses, loss_label, val_fout)
+
+        # calculate and apply gradient
+        grad = tape.gradient(applicable_loss, model.trainable_variables)
+        default_opt.apply_gradients(zip(grad, model.trainable_variables))
+
+        overall_train_loss = np.mean(applicable_loss)
+        overall_val_loss = np.mean(visible_loss)
+        print(colored('>>> Overall Training Loss: ', 'green') + colored(str(overall_train_loss), 'green', attrs=['bold', 'reverse']))
+        print(colored('>>> Overall Validation Loss: ', 'green') + colored(str(overall_val_loss), 'green', attrs=['bold', 'reverse']))
 
 # FOR TESTING PURPOSES ONLY. DELETE THIS
 test_in = loader.parse_input(training_files[100], input_path)
 test_gt = sync.trim_front(loader.parse_label(training_files[100], ground_truth_data_path))
 train_set, label_set = sync.sync_data(test_in, test_gt, len(test_gt))
+
+validation_input_name = np.random.choice(validation_files)
+# parse the validation set
+validation_input = loader.parse_input(validation_input_name, input_path)
+validation_output = sync.trim_front(loader.parse_label(validation_input_name, ground_truth_data_path))
+val_input, val_label = sync.sync_data(validation_input, validation_output, len(validation_output))
+val_label = loader.encode_multihot(val_label) # encode to multi-hot
+
+training_losses = [x(val_label, [np.zeros(88, dtype=np.float32)]*13) for x in loss_list]
