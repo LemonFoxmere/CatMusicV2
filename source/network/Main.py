@@ -3,7 +3,7 @@ import sys
 import math
 import numpy as np
 from termcolor import colored
-from tqdm import tqdm
+from tqdm import tqdm, trange
 sys.path.append('./source/network')
 from Dataloader import datasync as sync
 from Dataloader import loader
@@ -14,8 +14,9 @@ from tensorflow.keras.layers import Dense, Dropout, LSTM, BatchNormalization
 import keras.backend as K
 from keras.optimizers import Adam, SGD, RMSprop, Adagrad
 from tensorflow.python.client import device_lib
-from matplotlib import pyplot as plt
+import matplotlib.pyplot as plt
 from functools import reduce
+import time as systemclock
 
 # set memory growth
 for gpu in tf.config.experimental.list_physical_devices('GPU'):
@@ -162,19 +163,42 @@ def train_step(input, ground_truth, model, train_fout=None, val_fout=None): # tr
 
         overall_train_loss = np.mean(applicable_loss)
         overall_val_loss = np.mean(visible_loss)
+        # CLI debug messages
         print(colored('>>> Overall Training Loss: ', 'green') + colored(str(overall_train_loss), 'green', attrs=['bold', 'reverse']))
         print(colored('>>> Overall Validation Loss: ', 'green') + colored(str(overall_val_loss), 'green', attrs=['bold', 'reverse']))
 
-# FOR TESTING PURPOSES ONLY. DELETE THIS
-test_in = loader.parse_input(training_files[100], input_path)
-test_gt = sync.trim_front(loader.parse_label(training_files[100], ground_truth_data_path))
-train_set, label_set = sync.sync_data(test_in, test_gt, len(test_gt))
+        return overall_train_loss, overall_val_loss
 
-validation_input_name = np.random.choice(validation_files)
-# parse the validation set
-validation_input = loader.parse_input(validation_input_name, input_path)
-validation_output = sync.trim_front(loader.parse_label(validation_input_name, ground_truth_data_path))
-val_input, val_label = sync.sync_data(validation_input, validation_output, len(validation_output))
-val_label = loader.encode_multihot(val_label) # encode to multi-hot
+#  start training process
+save_interval = 20 # save an instance every 20 cycles (makeshift early stopping)
+epochs = 1
 
-training_losses = [x(val_label, [np.zeros(88, dtype=np.float32)]*13) for x in loss_list]
+# training data storages
+network_write_path = os.path.join(absolute_path, 'network', 'latest-cycle')
+# if it doesn't exist, create one
+try:
+    os.makedirs(output_dir_name) # if it doesn't exist, create on
+except FileExistsError:
+    pass # if it already exist, keep it that way
+loss_tracking = open(os.path.join(network_write_path, 'loss.tex'), 'w')
+np.random.shuffle(training_files)
+
+# TODO: implement training cycle
+
+# close loss tracker, assuming program terminated correctly
+loss_tracking.close()
+
+
+# THESE CODE ARE FOR TESTING PURPOSES ONLY.
+# test_in = loader.parse_input(training_files[100], input_path)
+# test_gt = sync.trim_front(loader.parse_label(training_files[100], ground_truth_data_path))
+# train_set, label_set = sync.sync_data(test_in, test_gt, len(test_gt))
+#
+# validation_input_name = np.random.choice(validation_files)
+# # parse the validation set
+# validation_input = loader.parse_input(validation_input_name, input_path)
+# validation_output = sync.trim_front(loader.parse_label(validation_input_name, ground_truth_data_path))
+# val_input, val_label = sync.sync_data(validation_input, validation_output, len(validation_output))
+# val_label = loader.encode_multihot(val_label) # encode to multi-hot
+#
+# training_losses = [x(val_label, [np.zeros(88, dtype=np.float32)]*13) for x in loss_list]
