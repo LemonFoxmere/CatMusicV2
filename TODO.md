@@ -17,15 +17,16 @@ Create Multi-hot Encoder | C
 Create Data Partitioning System | C
 Create Neural Network Architecture | RN
 Create BPTT Algorithm | C
-Create Data Feed in algorithm | IP
+Create Data Feed in algorithm | RN
 Create Early Stopping System | C
 Create Loss Tracker | C
 Create [Accuracy Tracker*](https://stats.stackexchange.com/questions/12702/what-are-the-measure-for-accuracy-of-multilabel-data#168952) | NS
+Create Training Process | C
 Test Training Effectiveness | NS
 Test Down Sampling effect | NS
 Test Data Efficiency on Training | NS
 
-last updated: 5-2-2021*
+last updated: 5-7-2021*
 
 ## Dev Notes:
 * Trim all data to 88 notes instead of the traditional 128
