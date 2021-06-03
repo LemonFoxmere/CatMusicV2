@@ -18,10 +18,13 @@ Create Data Partitioning System | C
 Create Neural Network Architecture | RN
 Create BPTT Algorithm | C
 Create Data Feed in algorithm | RN
-Create Early Stopping System | C
+Create Early Stopping System | IP
 Create Loss Tracker | C
 Create [Accuracy Tracker*](https://stats.stackexchange.com/questions/12702/what-are-the-measure-for-accuracy-of-multilabel-data#168952) | NS
 Create Training Process | C
+Create Batch Generation | IP
+Create Batch Testing Environment | NS
+Implement Sample expansion if necessary | NS
 Test Training Effectiveness | NS
 Test Down Sampling effect | NS
 Test Data Efficiency on Training | NS

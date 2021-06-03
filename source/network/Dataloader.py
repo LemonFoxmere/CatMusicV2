@@ -36,21 +36,26 @@ class datasync:
 
 class loader:
     # Math stuff
+    # @staticmethod
+    # def normalize(arr, t_min, t_max):
+    #     norm_arr = []
+    #     diff = t_max - t_min
+    #     max_arr = int(np.max(arr))
+    #     min_arr = int(np.min(arr))
+    #     diff_arr = max_arr - min_arr
+    #     for i in arr:
+    #         temp = (((i - min_arr)*diff)/diff_arr) + t_min
+    #         norm_arr.append(temp)
+    #     return np.array(norm_arr)
+    # THIS IS INEFFICIENT
+
     @staticmethod
-    def normalize(arr, t_min, t_max):
-        norm_arr = []
-        diff = t_max - t_min
-        max_arr = max(arr)
-        min_arr = min(arr)
-        diff_arr = max_arr - min_arr
-        for i in arr:
-            temp = (((i - min_arr)*diff)/diff_arr) + t_min
-            norm_arr.append(temp)
-        return np.array(norm_arr)
+    def normalize(arr, r):
+        return arr / (np.max(arr)/r)
 
     # parsing IO
     @staticmethod
-    def parse_input(input_file_name, input_path, norm=True, norm_lowbound=-1, norm_highbound=1):
+    def parse_input(input_file_name, input_path, norm=True, norm_bound=1):
         file_path = os.path.join(input_path, input_file_name)
         try:
             Fs, data = wavFile.read(file_path)
@@ -59,7 +64,7 @@ class loader:
             return -1 # if opening failed, return a -1 as error indication
         # check if normalization is wanted or not
         if(norm):
-            return loader.normalize(data, norm_lowbound, norm_highbound)
+            return loader.normalize(data, norm_bound)
         return data
 
     @staticmethod
