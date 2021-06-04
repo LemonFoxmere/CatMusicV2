@@ -56,6 +56,8 @@ class loader:
     # parsing IO
     @staticmethod
     def parse_input(input_file_name, input_path, norm=True, norm_bound=1):
+        input_file_name = str(input_file_name)
+        input_path = str(input_path)
         file_path = os.path.join(input_path, input_file_name)
         try:
             Fs, data = wavFile.read(file_path)
@@ -69,6 +71,8 @@ class loader:
 
     @staticmethod
     def parse_label(input_file_name, ground_truth_data_path):
+        input_file_name = str(input_file_name)
+        ground_truth_data_path = str(ground_truth_data_path)
         prefix = input_file_name.split('_')[0]
         label_file_name = '{prefix}.rawMid'.format(**locals())
         file_path = os.path.join(ground_truth_data_path, label_file_name)

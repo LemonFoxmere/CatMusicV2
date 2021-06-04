@@ -78,7 +78,7 @@ print(colored('  |__ {training_files_size} training data points\n'.format(**loca
 chunk_length_seconds = 0.125
 sample_rate = 44000
 sample_per_chunk = int(sample_rate * chunk_length_seconds)
-n_batch = 50
+n_batch = 500
 save_interval = 20 # save an instance every 20 cycles (makeshift early stopping)
 epochs = 1
 data_cut_off = training_files_size
@@ -164,7 +164,7 @@ def train_step(input, ground_truth, model, train_fout=None, val_fout=None): # tr
 
         training_losses = [x(ground_truth, training_prediction) for x in loss_list] # store all training losses
         validation_losses = [x(val_label, validation_prediction) for x in loss_list] # store all validation losses
-        applicable_loss = training_losses[default_loss_index] 
+        applicable_loss = training_losses[default_loss_index]
         visible_loss = validation_losses[default_loss_index]
 
         # store loss
@@ -230,31 +230,35 @@ else:
 
 print(colored('\n>>> Training...\n', 'green', attrs=['bold']))
 
-temp_input = []
-temp_out = []
-
-for i in training_files[:n_batch]:
-    unpaired_input = loader.parse_input(i, input_path) # parse input
-    unpaired_ground_truth = sync.trim_front(loader.parse_label(i, ground_truth_data_path)) # parse output
-    input, ground_truth = sync.sync_data(unpaired_input, unpaired_ground_truth, len(unpaired_ground_truth)) # pair IO + trim
-    ground_truth = np.array(loader.encode_multihot(ground_truth))
-
-    input = np.array(input)
-    input = np.reshape(input, (input.shape[0], 1, input.shape[1])) # reshape to a tensor which the neural net can use
-
-    temp_input.append(input)
-    temp_out.append(ground_truth)
-
-a = np.concatenate(temp_input)
-b = np.concatenate(temp_out)
-a.shape
-b.shape
-
-logits = model(a)
-
-logits.numpy().shape
-
-loss_list[default_loss_index](b, logits).numpy().shape
+# temp_input = []
+# temp_out = []
+#
+# for i in training_files[:n_batch]:
+#     unpaired_input = loader.parse_input(i, input_path) # parse input
+#     unpaired_ground_truth = sync.trim_front(loader.parse_label(i, ground_truth_data_path)) # parse output
+#     input, ground_truth = sync.sync_data(unpaired_input, unpaired_ground_truth, len(unpaired_ground_truth)) # pair IO + trim
+#     ground_truth = np.array(loader.encode_multihot(ground_truth))
+#
+#     input = np.array(input)
+#     input = np.reshape(input, (input.shape[0], 1, input.shape[1])) # reshape to a tensor which the neural net can use
+#
+#     temp_input.append(input)
+#     temp_out.append(ground_truth)
+#
+# a = np.concatenate(temp_input)
+# b = np.concatenate(temp_out)
+# a.shape
+# b.shape
+#
+# train_loss, val_loss = train_step(a, b, model, train_fout=train_loss_tracking, val_fout=val_loss_tracking)
+# train_loss
+# val_loss
+#
+# logits = model(a)
+#
+# logits.numpy().shape
+#
+# loss_list[default_loss_index](b, logits).numpy().shape
 
 for i in range(1,epochs+1):
     # display epoch progression
@@ -266,7 +270,7 @@ for i in range(1,epochs+1):
     # create tqdm display bar, as well as the loop itself, all looped by indexes
     file_range = tqdm(range(0, data_cut_off, n_batch), bar_format='{l_bar}{bar:20}{r_bar}{bar:-20b}', leave=True)
     # main display
-    file_range.set_description('Initializing...', 'grey', 'on_yellow'))
+    file_range.set_description(colored('Initializing...', 'grey', 'on_yellow'))
     train_loss = 'n/a'
     val_loss = 'n/a'
     total_batches = math.ceil(data_cut_off / n_batch)
@@ -275,7 +279,7 @@ for i in range(1,epochs+1):
     # loop through data with n_batch per mini-batch until file_range ends
     for i in file_range: # train with data index
         # set loop header to reading file state
-        header = colored('Reading Data...', 'grey', 'on_yellow') +' | ' + colored('Last Trn Loss: ', 'green') + colored(str(train_loss), 'green', attrs=['bold', 'reverse']) + '; ' + colored('Last Val Loss: ', 'green') + colored(str(val_loss),'green', attrs=['bold', 'reverse'])
+        header = colored('Reading Data...', 'grey', 'on_yellow') +'          | ' + colored('Last Trn Loss: ', 'green') + colored(str(train_loss), 'green', attrs=['bold', 'reverse']) + '; ' + colored('Last Val Loss: ', 'green') + colored(str(val_loss),'green', attrs=['bold', 'reverse'])
         file_range.set_description(header)
         file_range.refresh()
 
@@ -284,8 +288,8 @@ for i in range(1,epochs+1):
         temp_out = []
         # ===== READING IN TRAINING FILES =====
         for file in training_files[i : i+n_batch]: # loop through current mini-batch
-            unpaired_input = loader.parse_input(i, input_path) # parse input
-            unpaired_label = sync.trim_front(loader.parse_label(i, ground_truth_data_path)) # trimming the MIDI and syncying the data
+            unpaired_input = loader.parse_input(file, input_path) # parse input
+            unpaired_label = sync.trim_front(loader.parse_label(file, ground_truth_data_path)) # trimming the MIDI and syncying the data
             input, label = sync.sync_data(unpaired_input, unpaired_label, len(unpaired_label)) # pair IO + trim
             label = np.array(loader.encode_multihot(label)) # encode label
 
@@ -302,12 +306,12 @@ for i in range(1,epochs+1):
 
         # actual training part
         # STEP 1: Update status bar
-        header = colored('Training On Network...', 'grey', 'on_yellow') +' | ' + colored('Last Trn Loss: ', 'green') + colored(str(train_loss), 'green', attrs=['bold', 'reverse']) + '; ' + colored('Last Val Loss: ', 'green') + colored(str(val_loss),'green', attrs=['bold', 'reverse'])
+        header = colored('Training On Network...', 'grey', 'on_yellow') +'   | ' + colored('Last Trn Loss: ', 'green') + colored(str(train_loss), 'green', attrs=['bold', 'reverse']) + '; ' + colored('Last Val Loss: ', 'green') + colored(str(val_loss),'green', attrs=['bold', 'reverse'])
         file_range.set_description(header)
         file_range.refresh()
 
         # STEP 2: calculate train step
-        train_loss, val_loss = train_step(input, ground_truth, model, train_fout=train_loss_tracking, val_fout=val_loss_tracking)
+        train_loss, val_loss = train_step(X, y, model, train_fout=train_loss_tracking, val_fout=val_loss_tracking)
         # STEP 3: update losses (round to 4th decimal point)
         train_loss = int(train_loss * 10000) / 10000
         val_loss = int(val_loss * 10000) / 10000

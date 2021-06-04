@@ -22,14 +22,16 @@ Create Early Stopping System | IP
 Create Loss Tracker | C
 Create [Accuracy Tracker*](https://stats.stackexchange.com/questions/12702/what-are-the-measure-for-accuracy-of-multilabel-data#168952) | NS
 Create Training Process | C
-Create Batch Generation | IP
-Create Batch Testing Environment | NS
+Create Batch Generation | C
+Create Batch Testing Environment | C
 Implement Sample expansion if necessary | NS
-Test Training Effectiveness | NS
+Test Training Effectiveness | IP
+Fix Data Reading Bugs | IP
 Test Down Sampling effect | NS
 Test Data Efficiency on Training | NS
 
-last updated: 5-7-2021*
+last updated: 6-3-2021*
+* FIX DATA READING SPEED ISSUE (Data reading extremely slow)
 
 ## Dev Notes:
 * Trim all data to 88 notes instead of the traditional 128
