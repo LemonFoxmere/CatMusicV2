@@ -26,11 +26,13 @@ Create Batch Generation | C
 Create Batch Testing Environment | C
 Implement Sample expansion if necessary | NS
 Test Training Effectiveness | IP
-Fix Data Reading Bugs | IP
+Create Post Processing Script | IP
+Fix Data Reading Bugs | C
 Test Down Sampling effect | NS
 Test Data Efficiency on Training | NS
 
-last updated: 6-3-2021*
+last updated: 6-4-2021*
+release goal: 6-10-2021
 * FIX DATA READING SPEED ISSUE (Data reading extremely slow)
 
 ## Dev Notes:

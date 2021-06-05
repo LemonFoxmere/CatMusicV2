@@ -25,6 +25,7 @@ print(colored('Loading matplotlib...', attrs=['bold']))
 import matplotlib.pyplot as plt
 from functools import reduce
 from time import sleep
+import time
 from tensorflow.python.client import device_lib
 print(colored('Loading pytorch...', attrs=['bold']))
 import torch
@@ -78,8 +79,8 @@ print(colored('  |__ {training_files_size} training data points\n'.format(**loca
 chunk_length_seconds = 0.125
 sample_rate = 44000
 sample_per_chunk = int(sample_rate * chunk_length_seconds)
-n_batch = 500
-save_interval = 20 # save an instance every 20 cycles (makeshift early stopping)
+n_batch = training_files_size//200
+save_interval = 100 # save an instance every X min-batch (makeshift early stopping)
 epochs = 1
 data_cut_off = training_files_size
 
@@ -120,9 +121,9 @@ loss_list = [
 loss_label = [ # how the loss functions will be named when displayed on a graph
     'Binary_CSE',
     'Categorical_CSE',
-    'Mean Squared Error',
-    'Mean Absolute Error',
-    'sigmoid_CSE_with_Logits',
+    'Mean_Squared_Error',
+    'Mean_Absolute_Error',
+    'Sigmoid_CSE_with_Logits',
 ]
 default_loss_index = 0
 
@@ -140,7 +141,9 @@ def write_loss(losses, labels, fout):
         write_out += ';'
         i+=1
     write_out += '\n'
-    fout.write(write_out)
+    foutf = open(fout, 'a')
+    foutf.write(write_out)
+    foutf.close()
 
 # ==================== TRAINING PROCESS ====================
 def train_step(input, ground_truth, model, train_fout=None, val_fout=None): # training input and ground truth should already be synchronized and encoded
@@ -195,8 +198,8 @@ try:
 except FileExistsError:
     pass # if it already exist, keep it that way
 
-train_loss_tracking = open(os.path.join(network_write_path, 'train_loss.tex'), 'w')
-val_loss_tracking = open(os.path.join(network_write_path, 'val_loss.tex'), 'w')
+train_loss_tracking = os.path.join(network_write_path, 'train_loss.tex')
+val_loss_tracking = os.path.join(network_write_path, 'val_loss.tex')
 
 print(colored('>>> Attempting to create neural network...', 'yellow'))
 
@@ -273,8 +276,7 @@ for i in range(1,epochs+1):
     file_range.set_description(colored('Initializing...', 'grey', 'on_yellow'))
     train_loss = 'n/a'
     val_loss = 'n/a'
-    total_batches = math.ceil(data_cut_off / n_batch)
-    total_batches
+    on_batch = 0
 
     # loop through data with n_batch per mini-batch until file_range ends
     for i in file_range: # train with data index
@@ -287,8 +289,11 @@ for i in range(1,epochs+1):
         temp_input = []
         temp_out = []
         # ===== READING IN TRAINING FILES =====
-        for file in training_files[i : i+n_batch]: # loop through current mini-batch
+        for file in (training_files[i : i+n_batch]): # loop through current mini-batch
             unpaired_input = loader.parse_input(file, input_path) # parse input
+            if(unpaired_input.size == 0):
+                print(colored('skipped {file}'.format(**locals()), 'red'))
+                continue
             unpaired_label = sync.trim_front(loader.parse_label(file, ground_truth_data_path)) # trimming the MIDI and syncying the data
             input, label = sync.sync_data(unpaired_input, unpaired_label, len(unpaired_label)) # pair IO + trim
             label = np.array(loader.encode_multihot(label)) # encode label
@@ -316,9 +321,14 @@ for i in range(1,epochs+1):
         train_loss = int(train_loss * 10000) / 10000
         val_loss = int(val_loss * 10000) / 10000
 
+        # STEP 4: save snapshot if necessary
+        if(on_batch%save_interval == 0):
+            batch_num = i//n_batch
+            model.save(os.path.join(network_write_path, 'snp_{batch_num}.h5'.format(**locals())))
+        on_batch += 1
+
 # close loss tracker, assuming program terminated correctly
-train_loss_tracking.close()
-val_loss_tracking.close()
+model.save(os.path.join(network_write_path, 'snp_fin.h5'))
 
 # THESE CODE ARE FOR TESTING PURPOSES ONLY.
 # test_in = loader.parse_input(training_files[100], input_path)

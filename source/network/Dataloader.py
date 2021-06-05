@@ -63,8 +63,12 @@ class loader:
             Fs, data = wavFile.read(file_path)
         except:
             print(colored('Error: Failed to open \"{input_file_name}\" as input! This file either does not exist or has internal errors and cannot be read.'.format(**locals()), 'red'))
-            return -1 # if opening failed, return a -1 as error indication
+            return np.array([]) # if opening failed, return a -1 as error indication
         # check if normalization is wanted or not
+
+        if(data.size == 0):
+            return np.array([])
+
         if(norm):
             return loader.normalize(data, norm_bound)
         return data

@@ -133,3 +133,5 @@ data/rawMid/*
 data/csvMid/*
 data/mid/*
 data/wav/*
+network/*
+!network/README.md
