@@ -198,8 +198,8 @@ try:
 except FileExistsError:
     pass # if it already exist, keep it that way
 
-train_loss_tracking = os.path.join(network_write_path, 'train_loss.tex')
-val_loss_tracking = os.path.join(network_write_path, 'val_loss.tex')
+train_loss_tracking = os.path.join(network_write_path, 'train_loss.txt')
+val_loss_tracking = os.path.join(network_write_path, 'val_loss.txt')
 
 print(colored('>>> Attempting to create neural network...', 'yellow'))
 

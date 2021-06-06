@@ -95,7 +95,7 @@ class loader:
     @staticmethod
     def encode_multihot(arrs, encoding_size=88):
         # assuming that the given array is in the domain of 0-87, we can directly map each note to a one in a [encoding_size,] sized vector of 0s
-        # any chord that starts with 0s will be considered silence due to the featuer in rawMidi parser. Check README.md for more details
+        # any chord that starts with 0s will be considered silence due to the feature in rawMidi parser. Check TODO.md for more details
         # first check bound errors
         final_result = []
         for arr in arrs:
