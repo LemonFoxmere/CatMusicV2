@@ -31,6 +31,8 @@ Fix Data Reading Bugs | C
 Test Down Sampling effect | NS
 Test Data Efficiency on Training | NS
 
+
+
 last updated: 6-5-2021*
 release goal: 6-10-2021
 * FIX DATA READING SPEED ISSUE (Data reading extremely slow)

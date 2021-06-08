@@ -41,7 +41,7 @@ label_data_path = os.path.join(data_root_path, 'rawMid')
 storage_path = os.path.join(absolute_path, 'network')
 cycle_path = 'cyc1'
 
-network_path = os.path.join(storage_path, cycle_path, 'snp_0.h5')
+network_path = os.path.join(storage_path, cycle_path, 'snp_200.h5')
 train_loss_path = os.path.join(storage_path, cycle_path, 'train_loss.txt')
 val_loss_path = os.path.join(storage_path, cycle_path, 'val_loss.txt')
 
@@ -118,7 +118,7 @@ note_to_freq = lambda note : np.float32(440 * 2 ** ((note-69)/12))
 note_to_freq_with_offset = lambda note : np.float32(440 * 2 ** (((note+21)-69)/12))
 
 # parse the multi-hot encoding into raw numbers
-threshold = 0.5
+threshold = 0.505
 
 note_out = []
 for point in output: # read in all data points
@@ -126,35 +126,37 @@ for point in output: # read in all data points
     for i in range(point.shape[0]):
         if(point[i] > threshold):
             point_note_out.append(i)
+    if(len(point_note_out) == 0): point_note_out.append(0)
     note_out.append(np.array(point_note_out))
 
-# store note as raw numbers to be processed later
+# get a multi-hot encoding of that
+encoded_note_out = loader.encode_multihot(note_out)
 
 sample_rate = 44000
-duration = 5 # as in seconds
 length = np.float32(sample_per_chunk/sample_rate)
 
 t = np.linspace(0, length, int(sample_rate * length))  #  Produces a sample lengthed note
 
 final = []
-for sample in freqOut:
+# loop through all note vectors and synthesize them into sine waves
+for i in range(len(note_out)):
     # silence is represented by an all zero vector!
-    # TODO: adapt this segment of the code
-    if(sample.shape[0] == 0):
-        final.append(np.sin(0*t))
+    if(np.all(encoded_note_out[0] == np.zeros(88))): # the case that it is silent
+        final.append(np.sin(0*t)) # append a silence to the final sequence
         continue
-    overall = np.sin(noteToFreq(sample[0]+21) * 2 * np.pi * t)
-    for freq in sample[1:]:
-        overall += np.sin(noteToFreq(freq+21) * 2 * np.pi * t)
+
+    # if it is not a silence, create the fourier transform
+    overall = np.sin(note_to_freq_with_offset(note_out[i][0]) * 2 * np.pi * t) # take full cycle of 2pi radians and scale them by scaler T
+    for freq in note_out[i][1:]:
+        overall += np.sin(note_to_freq_with_offset(freq) * 2 * np.pi * t)
     final.append(overall)
 
 gen = np.concatenate(final)
 
-input_data = tf.reshape(input_data, [-1])
+flattend_input = input.reshape((1,-1))[0]
 
-plt.plot(np.arange(input_data.shape[0]), input_data, color='blue')
+plt.plot(flattend_input, color='blue')
+plt.plot(gen, color='red')
 
-plt.plot(np.arange(gen.shape[0]), gen, color='red')
-
-Audio(gen, rate=sampleRate)
-Audio(input_data, rate=sampleRate)
+Audio(flattend_input, rate=sample_rate)
+Audio(gen, rate=sample_rate)
