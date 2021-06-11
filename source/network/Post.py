@@ -39,9 +39,14 @@ data_root_path = os.path.join(absolute_path, 'data')
 input_path = os.path.join(data_root_path, 'wav')
 label_data_path = os.path.join(data_root_path, 'rawMid')
 storage_path = os.path.join(absolute_path, 'network')
+
+# Change your training session name here. So for example if you had a session named "cyc1", you put that here.
 cycle_path = 'cyc1'
 
+# Select your network preference here. So for example if you want to test the snapshot "snp_200.h5", you put that here.
 network_path = os.path.join(storage_path, cycle_path, 'snp_200.h5')
+
+# Read in training and validation loss files
 train_loss_path = os.path.join(storage_path, cycle_path, 'train_loss.txt')
 val_loss_path = os.path.join(storage_path, cycle_path, 'val_loss.txt')
 
@@ -67,7 +72,7 @@ for entry in val_loss_file:
     ))
 val_loss = np.array(val_loss)
 
-# plot them
+# Plot all the losses
 x = np.arange(train_loss.shape[0])
 zero = np.zeros(x.shape[0])
 
@@ -93,6 +98,8 @@ axis[1].set_ylabel('Loss Value')
 plt.tight_layout()
 plt.show()
 
+# after this part, you should be able to see what your training loss progression is like
+
 # only disable this when running in terminal and you only want to see the graph
 # quit()
 # ============================================== DATA LOAD IN ==============================================
@@ -100,7 +107,7 @@ plt.show()
 model = keras.models.load_model(network_path)
 all_files = os.listdir(input_path)
 
-file = all_files[0] # extract a testing file
+file = all_files[2] # extract a testing file
 
 unpaired_input = loader.parse_input(file, input_path) # parse input
 unpaired_label = sync.trim_front(loader.parse_label(file, label_data_path)) # trimming the MIDI and syncing the data
@@ -118,7 +125,7 @@ note_to_freq = lambda note : np.float32(440 * 2 ** ((note-69)/12))
 note_to_freq_with_offset = lambda note : np.float32(440 * 2 ** (((note+21)-69)/12))
 
 # parse the multi-hot encoding into raw numbers
-threshold = 0.505
+threshold = 0.7
 
 note_out = []
 for point in output: # read in all data points
@@ -155,8 +162,13 @@ gen = np.concatenate(final)
 
 flattend_input = input.reshape((1,-1))[0]
 
-plt.plot(flattend_input, color='blue')
-plt.plot(gen, color='red')
+# Plot out the waveforms
+plt.plot(gen, color='red', label='MIDI transcription by AI')
+plt.plot(flattend_input, color='blue', label='raw sound data')
+plt.legend()
+plt.title('MIDI transcription result by BLSTM')
 
-Audio(flattend_input, rate=sample_rate)
-Audio(gen, rate=sample_rate)
+plt.show()
+
+Audio(flattend_input, rate=sample_rate) # this is the original
+Audio(gen, rate=sample_rate) # this is the transcribed

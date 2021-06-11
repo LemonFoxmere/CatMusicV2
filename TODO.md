@@ -2,7 +2,7 @@
 ---
 
 ## **Current TODOs**
-<sub>NS = Not Started; IP = In Progress; I = Issues; C = Completed; CNT = Completed but needs tweak; RN = Revision Needed; IRP = In Research Progress</sub>
+<sub>NS = Not Started; IP = In Progress; I = Issues; C = Completed; CNT = Completed but needs tweak; RN = Revision Needed; IRP = In Research Progress; FFR = For Future Reference </sub>
 | TASK | COMPLETION |
 | :-: | :-: |
 Create RawMid Generation Algorithm | C
@@ -17,24 +17,30 @@ Create Multi-hot Encoder | C
 Create Data Partitioning System | C
 Create Neural Network Architecture | RN
 Create BPTT Algorithm | C
-Create Data Feed in algorithm | RN
-Create Early Stopping System | IP
+Create Data Feed in algorithm | FFR (Faster pre-processing possibly needed)
+Create Early Stopping System | C
 Create Loss Tracker | C
 Create [Accuracy Tracker*](https://stats.stackexchange.com/questions/12702/what-are-the-measure-for-accuracy-of-multilabel-data#168952) | NS
 Create Training Process | C
 Create Batch Generation | C
 Create Batch Testing Environment | C
-Implement Sample expansion if necessary | NS
-Test Training Effectiveness | IP
-Create Post Processing Script | IP
-Fix Data Reading Bugs | C
-Test Down Sampling effect | NS
-Test Data Efficiency on Training | NS
+Implement Sample expansion if necessary | IP
+Test Training Effectiveness | C (results surpassed expectation)
+Create Post Processing Script | C
+Fix Data Reading Bugs | FFR
+Test Down Sampling effect | FFR
+Test Data Efficiency on Training | C (results surpassed expectation)
 
+last updated: 6-7-2021*
 
+**release goal: 6-10-2021**
 
-last updated: 6-5-2021*
-release goal: 6-10-2021
+**project success: 6-10-2021 @ 2:30PM**
+
+**video release goal: 6-16-2021**
+
+experimentation deadline: 6-12-2021
+
 * FIX DATA READING SPEED ISSUE (Data reading extremely slow)
   * Cannot be fixed as of 6-5-2021. 3 hours wasted (increment if necessary).
 
@@ -136,6 +142,13 @@ This function attempts to scale down the CATCSE values as the deviation gets sma
 #### Research Journal 4-10 (V1):
 Stacked LSTM models are created to improve efficiency, and a basic sense of rhythm and composition is detected. The suspecting failure point is the poor matching algorithm chosen for the generated output set and ground truth data set. The custom loss is abandoned for its inefficiency in classifying larger sequential multi-label datasets, and instead binary_crossentropy is used. Softmax as the output activation is also abandoned in replace of sigmoid, which is not based on a probabilistic model, thus being more efficient in multi-label classification.
 
+### "Release" Logs
+
+#### Success #1!
+After proper syncing of the input and label data, an accurate transcription from raw audio -> MIDI was achieved. Even at threshold as low as 0.1, the network showed its accuracy superiority in retaining the efficacy of the notes transcribed. There are almost no notes within the output that is fuzzy, showing its classification accuracy.
+
+#### What's Next After Success #1?
+Because I wanted this to be a fully functional music to midi transcription software that works on the fundamentals of Deep Learning, the next step is to discover ways to more efficiently and more accurately generalize notes and classify them. One way to do this is to pass the original audio through a filter, such as FFT, MFCC or a MEL spectrometer, and use a convolution neural network for classification. However, it should be noted that sequence still matters as we are working with sequential data, so LSTMS and Transformers should not be thrown out the windows just yet. This first success proved the concept that AI's can be very good at doing MIDI transcriptions, and are capable of doing so. The next step is to obtain more realistic and better data to train the network on so it that it works on real songs, instead of pure piano music. THIS PROJECT IS NOT FINISHED, AND THE RESEARCH IS STILL IN PROGRESS!!! There remains a lot to be researched in this field.
 
 ---
 For all references on my research and stuff, look in the `references` folder.\
