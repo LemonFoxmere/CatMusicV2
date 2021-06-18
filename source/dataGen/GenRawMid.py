@@ -12,11 +12,11 @@ args = vars(parser.parse_args())
 def generate_chord(note_count):
     chord = []
     for i in range(note_count):
-        new_note = math.floor(np.random.normal(39,15,1)) # generate a new unique note
+        new_note = math.floor(np.random.normal(39,15,1)) # generate a new unique note (WAS 39,15,1)
         if(new_note < 0): new_note = 0
         elif(new_note > 87): new_note = 87
         while(new_note in chord): # check for repetitions
-            new_note = math.floor(np.random.normal(39,15,1))
+            new_note = math.floor(np.random.normal(39,15,1)) # WAS 39,15,1
             if(new_note < 0): new_note = 0
             elif(new_note > 87): new_note = 87
         chord.append(new_note) # add note to chord
@@ -35,7 +35,7 @@ def generate_sample(chord_count, rep_epsilon, rep_epsilon_decay, gap_epsilon, ga
     # if gap does not generate, check is last_chord is None, so as requiring to generate a new starting chord
     if(last_chord == None):
         # generate new chord
-        note_count = math.floor(np.random.normal(3.5, 2, 1))
+        note_count = math.floor(np.random.normal(3.5, 2, 1)) # WAS 3.5, 2, 1
         if(note_count < 1): note_count = 1
         elif(note_count > 8): note_count = 8
         chord = generate_chord(note_count)
@@ -48,7 +48,7 @@ def generate_sample(chord_count, rep_epsilon, rep_epsilon_decay, gap_epsilon, ga
             return [np.array(last_chord)] + generate_sample(chord_count-1, rep_epsilon-rep_epsilon_decay, rep_epsilon_decay, gap_epsilon+gap_epsilon_decay/4, gap_epsilon_decay, last_chord=last_chord)
         else: # if decided to note repeat
             # generate new chord, and increse repetition probability
-            note_count = math.floor(np.random.normal(3.5, 2, 1))
+            note_count = math.floor(np.random.normal(3.5, 2, 1) # WAS 3.5, 2, 1
             if(note_count < 1): note_count = 1
             elif(note_count > 8): note_count = 8
             chord = generate_chord(note_count)
@@ -67,7 +67,7 @@ except FileExistsError:
 print(colored('Path opened. Generating {sample_size} RawMids'.format(**locals()), 'green'))
 total_size = 0
 for i in tqdm(range(sample_size)):
-    data = list(map(lambda x : str(x.tolist())[1:-1].replace(',',''), generate_sample(10, 0.65, 0.1, 0.4, 0.1)))
+    data = list(map(lambda x : str(x.tolist())[1:-1].replace(',',''), generate_sample(10, 0.65, 0.1, 0.4, 0.1))) # WAS 10, 0.65, 0.1, 0.4, 0.1
     fin = open(os.path.join( dir_name , '{i}.rawMid'.format(**locals()) ), 'w')
     for sample in data:
         fin.write(sample + '\n')

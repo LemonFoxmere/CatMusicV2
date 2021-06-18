@@ -79,7 +79,7 @@ print(colored('  |__ {training_files_size} training data points\n'.format(**loca
 chunk_length_seconds = 0.125
 sample_rate = 44000
 sample_per_chunk = int(sample_rate * chunk_length_seconds)
-n_batch = training_files_size//200
+n_batch = training_files_size//300
 save_interval = 100 # save an instance every X min-batch (makeshift early stopping)
 epochs = 1
 data_cut_off = training_files_size
@@ -279,7 +279,7 @@ for i in range(1,epochs+1):
     on_batch = 0
 
     # loop through data with n_batch per mini-batch until file_range ends
-    for i in file_range: # train with data index
+    for j in file_range: # train with data index
         # set loop header to reading file state
         header = colored('Reading Data...', 'grey', 'on_yellow') +'          | ' + colored('Last Trn Loss: ', 'green') + colored(str(train_loss), 'green', attrs=['bold', 'reverse']) + '; ' + colored('Last Val Loss: ', 'green') + colored(str(val_loss),'green', attrs=['bold', 'reverse'])
         file_range.set_description(header)
@@ -289,7 +289,7 @@ for i in range(1,epochs+1):
         temp_input = []
         temp_out = []
         # ===== READING IN TRAINING FILES =====
-        for file in (training_files[i : i+n_batch]): # loop through current mini-batch
+        for file in (training_files[j : j+n_batch]): # loop through current mini-batch
             unpaired_input = loader.parse_input(file, input_path) # parse input
             if(unpaired_input.size == 0):
                 print(colored('skipped {file}'.format(**locals()), 'red'))
@@ -323,7 +323,7 @@ for i in range(1,epochs+1):
 
         # STEP 4: save snapshot if necessary
         if(on_batch%save_interval == 0):
-            batch_num = i//n_batch
+            batch_num = j//n_batch
             model.save(os.path.join(network_write_path, 'snp_{batch_num}.h5'.format(**locals())))
         on_batch += 1
 

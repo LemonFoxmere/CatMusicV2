@@ -37,4 +37,4 @@ for file in tqdm(files):
     total_size += os.path.getsize(os.path.join( write_path ))
 total_size_mb = int(total_size / 10000)/100
 files_length = len(files)
-print(colored('Program Finished. Synthesized {files_length} RawMids, totalling {total_size_mb}MB.'.format(**locals()), 'green'))
+print(colored('Program Finished. Synthesized {files_length} wavs, totalling {total_size_mb}MB.'.format(**locals()), 'green'))

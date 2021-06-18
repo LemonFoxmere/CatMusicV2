@@ -19,16 +19,20 @@ class datasync:
 
     # create a set of training and label data
     # TODO: VERIFY
+    # TODO: WHAT DOES THIS DO AND HOW DOES IT WORK???
     @staticmethod
     def sync_data(train, label, chunk_length, chunk_duration=0.125, rate=44000):
         # calculate the amount of wavSamples per chunk
         chunk_size = int(rate * chunk_duration)
         train_set = []
         label_set = []
+
         for i in range(chunk_length-1):
             range_start = i * chunk_size
             range_end = (i+1) * chunk_size
             train_chunk = train[range_start : range_end]
+            if(len(train_chunk) < chunk_size): # fill in gaps
+                train_chunk = np.concatenate((train_chunk, np.zeros(chunk_size-len(train_chunk))))
             label_chunk = label[i]
             train_set.append(train_chunk)
             label_set.append(label_chunk)
@@ -101,6 +105,7 @@ class loader:
         for arr in arrs:
             min_arr = min(arr)
             max_arr = max(arr)
+            arr = sorted(arr, reverse=True)
             if(max_arr > encoding_size-1 or min_arr < 0):
                 raise RuntimeError('Array max and/or min values exceed encoding size. Max: {max_arr}, min: {min_arr}, encoding_size: {encoding_size}'.format(**locals()))
             # start encoding process

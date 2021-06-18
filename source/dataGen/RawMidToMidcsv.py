@@ -26,6 +26,7 @@ def chord_to_csvmid(chord, clock_time_stamp, on=True):
     return csv
 
 # REVIEW CODE
+# TODO: figure out what the fuck this do again?????
 def parse_raw_midi(raw_mid, last_chord=None, time_stamp=0):
     clock_time_stamp = seconds_to_clock(time_stamp) # return a midi time stamp
     # process last chord
