@@ -30,12 +30,13 @@ input_path = os.path.join(data_root_path, 'wav')
 label_data_path = os.path.join(data_root_path, 'rawMid')
 storage_path = os.path.join(absolute_path, 'network')
 
+# read_path = os.path.join(data_root_path, 'lol-phoenix')
 read_path = os.path.join(data_root_path, 'lol-phoenix')
 
 files = sorted(os.listdir(read_path), key = lambda x : int(x.split('_')[0]))
 max_length = chunk_length_seconds * (int(files[-1].split('_')[0])+10)
 max_samples = int(max_length * sample_rate)
-max_length = max_samples - sample_rate
+max_length = max_samples / sample_rate
 max_note_index = int(files[-1].split('_')[0])
 
 # start assembly
@@ -49,7 +50,7 @@ def get_note(time_index): # return a list of files for a certain note in a time 
     return x
 
 # loop through all files and put them in the correct place
-for i in range(max_note_index):
+for i in range(max_note_index+1):
     # retrieve the corresponding notes
     note_files = get_note(i)
     if(len(note_files) == 0): continue # if the current note is empty, then continue

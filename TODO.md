@@ -1,7 +1,25 @@
 # Hello! I was not expecting you here. This is where I keep my dev logs and stuff.
 ---
 
-## **Current TODOs**
+## **Current TODOs (Iteration 2)**
+<sub>NS = Not Started; IP = In Progress; I = Issues; C = Completed; CNT = Completed but needs tweak; RN = Revision Needed; IRP = In Research Progress; FFR = For Future Reference </sub>
+| TASK | COMPLETION |
+| :-: | :-: |
+Create [Accuracy Tracker*](https://stats.stackexchange.com/questions/12702/what-are-the-measure-for-accuracy-of-multilabel-data#168952) | NS
+Test Down Sampling effect | FFR
+Modify and improve data generation algorithm | IP
+Re-check functionality of Data syncing algorithm | NS
+Create dynamic equalizer | NS
+Create frequency limiter | NS
+Create MEL spectrogram | NS
+Create data sampling and queuing process | NS
+Create new Neural Network architecture | NS
+Test architecture efficacy | NS
+Test hyper parameter tuning | NS
+Test instrument selections | NS
+Test BPM diversity's effect | NS
+
+## **Iteration 1 TODOs**
 <sub>NS = Not Started; IP = In Progress; I = Issues; C = Completed; CNT = Completed but needs tweak; RN = Revision Needed; IRP = In Research Progress; FFR = For Future Reference </sub>
 | TASK | COMPLETION |
 | :-: | :-: |
@@ -24,7 +42,7 @@ Create [Accuracy Tracker*](https://stats.stackexchange.com/questions/12702/what-
 Create Training Process | C
 Create Batch Generation | C
 Create Batch Testing Environment | C
-Implement Sample expansion if necessary | IP
+Implement Sample expansion if necessary | C
 Test Training Effectiveness | C (results surpassed expectation)
 Create Post Processing Script | C
 Fix Data Reading Bugs | FFR
@@ -32,14 +50,6 @@ Test Down Sampling effect | FFR
 Test Data Efficiency on Training | C (results surpassed expectation)
 
 last updated: 6-7-2021*
-
-**release goal: 6-10-2021**
-
-**project success: 6-10-2021 @ 2:30PM**
-
-**video release goal: 6-16-2021**
-
-experimentation deadline: 6-12-2021
 
 * FIX DATA READING SPEED ISSUE (Data reading extremely slow)
   * Cannot be fixed as of 6-5-2021. 3 hours wasted (increment if necessary).

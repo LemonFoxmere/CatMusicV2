@@ -113,7 +113,7 @@ all_files = os.listdir(input_path)
 all_files[1]
 
 file = all_files[1]
-file = 'testmusic1_0.wav' # extract a testing file
+file = 'testmusic2_0.wav' # extract a testing file
 
 unpaired_input = loader.parse_input(file, input_path) # parse input
 unpaired_label = sync.trim_front(loader.parse_label(file, label_data_path)) # trimming the MIDI and syncing the data
@@ -131,15 +131,20 @@ input.shape
 
 # ============================================== PREDICTION ==============================================
 
-# output = model.predict(input*6)
+g = systemClock.time()
 output = model.predict(input*3)
+h = systemClock.time()
+
+h-g
+
+# output = model.predict(input*3)
 
 note_to_freq = lambda note : np.float32(440 * 2 ** ((note-69)/12))
 note_to_freq_with_offset = lambda note : np.float32(440 * 2 ** (((note+21)-69)/12))
 
 # parse the multi-hot encoding into raw numbers
-# threshold = 0.9
 threshold = 0.9
+# threshold = 0.9
 
 note_out = []
 for point in output: # read in all data points
@@ -187,8 +192,8 @@ flattend_input = input.reshape((1,-1))[0]
 note_out
 
 # Plot out the waveforms
-plt.plot([sum(i) for i in note_out], color='green', label='Raw MIDI by AI')
-plt.plot(loader.normalize(gen,3), color='red', label='MIDI transcription by AI')
+plt.plot([sum(i) for i in note_out], color='green')
+plt.plot(loader.normalize(gen[4000000:5000000],3), color='red')
 plt.plot(flattend_input, color='blue', label='raw sound data')
 
 
@@ -197,9 +202,11 @@ plt.plot(flattend_input, color='blue', label='raw sound data')
 
 # plt.show()
 
-Audio(flattend_input, rate=sample_rate) # this is the original
-Audio(gen, rate=sample_rate) # this is the transcribed
-Audio((flattend_input)+loader.normalize(gen, 3), rate=sample_rate) # this is the transcribed and original
+Audio(flattend_input[4000000:5000000], rate=sample_rate) # this is the original
+Audio(gen[4000000:5000000], rate=sample_rate) # this is the transcribed
+Audio((flattend_input[4000000:5000000])+loader.normalize(gen[4000000:5000000], 3), rate=sample_rate) # this is the transcribed and original
+
+
 
 # CAT PITCH SHIFT ALGORITHM
 # First, smooth out the waveforms. override notes that last for 0.125ms with the previous note
@@ -239,13 +246,13 @@ for i in range(len(smoothed_note_out)):
 
 smoothed_gen = np.concatenate(smoothed_final)
 
-prank = loader.parse_input('testmusic1_1.wav', input_path) # parse input
-Audio(loader.normalize(prank,2), rate=sample_rate) # what the fuck
+prank = loader.parse_input('testmusic2_0.wav', input_path) # parse input
+Audio(loader.normalize(smoothed_gen,2), rate=sample_rate)
 
 offsetted_note_out = [i-39 for i in [1000]+smoothed_note_out]
 
 # generate all necessary wav files for assembly
-output_dir_name = os.path.join(absolute_path, 'data', 'lol-phoenix')
+output_dir_name = os.path.join(absolute_path, 'data', 'exurbia-tdww')
 try:
     os.makedirs(output_dir_name)
     print(colored("Successfully opened output directory.".format(**locals()), 'green'))
@@ -264,7 +271,8 @@ for i in range(1, len(offsetted_note_out)):
     for j in range(chord.size): # loop through all notes in chord
         fout_name = '{offset_i}_{j}.wav'.format(**locals())
         fout_dir = os.path.join(output_dir_name, fout_name)
-        note_shift = chord[j]
+        note_shift = chord[j] # sensitivity
         command = 'pitchshifter -s {template_dir} -o {fout_dir} -p {note_shift}'.format(**locals())
         # execute conversion with Timidity++. The user must have this installed and path configured in order to run this geneartion code successfully
         os.system(command)
+print('done')
