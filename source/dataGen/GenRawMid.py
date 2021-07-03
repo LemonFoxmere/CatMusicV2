@@ -48,13 +48,13 @@ def generate_sample(chord_count, rep_epsilon, rep_epsilon_decay, gap_epsilon, ga
             return [np.array(last_chord)] + generate_sample(chord_count-1, rep_epsilon-rep_epsilon_decay, rep_epsilon_decay, gap_epsilon+gap_epsilon_decay/4, gap_epsilon_decay, last_chord=last_chord)
         else: # if decided to note repeat
             # generate new chord, and increse repetition probability
-            note_count = math.floor(np.random.normal(3.5, 2, 1) # WAS 3.5, 2, 1
+            note_count = math.floor(np.random.normal(3.5, 2, 1)) # WAS 3.5, 2, 1
             if(note_count < 1): note_count = 1
             elif(note_count > 8): note_count = 8
             chord = generate_chord(note_count)
             return [np.array(chord)] + generate_sample(chord_count-1, rep_epsilon+rep_epsilon_decay, rep_epsilon_decay, gap_epsilon+gap_epsilon_decay/2, gap_epsilon_decay, last_chord=chord)
 
-# data geneartion
+# data generation
 sample_size = args['samplesize']
 absolute_path = os.path.join('..','..')
 dir_name = os.path.join(absolute_path, 'data', 'rawMid')
@@ -64,11 +64,15 @@ try:
 except FileExistsError:
     print(colored("Write path {dir_name} already exists. Opening path.".format(**locals()), 'yellow'))
 
+bpms = np.random.randint(40,201,size=sample_size)
+
 print(colored('Path opened. Generating {sample_size} RawMids'.format(**locals()), 'green'))
 total_size = 0
 for i in tqdm(range(sample_size)):
+    # generate sound data
     data = list(map(lambda x : str(x.tolist())[1:-1].replace(',',''), generate_sample(10, 0.65, 0.1, 0.4, 0.1))) # WAS 10, 0.65, 0.1, 0.4, 0.1
     fin = open(os.path.join( dir_name , '{i}.rawMid'.format(**locals()) ), 'w')
+    fin.write(str(bpms[i]) + '\n') # write in bpm generated
     for sample in data:
         fin.write(sample + '\n')
     fin.write('eof')
