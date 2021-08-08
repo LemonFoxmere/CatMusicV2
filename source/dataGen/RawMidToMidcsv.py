@@ -79,17 +79,19 @@ print('Attempting to parse data from {parse_size} files'.format(**locals()))
 
 # generation meta-data
 bpm_to_tempo = lambda x : int(60/x * (10**6)) # ex: 120 bpm = 0.5 seconds per beat = 0.5 * 10^6 μs per beat
-bpm_to_tempo(200)
+fixed_tempo = bpm_to_tempo(120)
+clock_duration = ((fixed_tempo/1000000)/24)/16
 
 for file in tqdm(file_list):
     # begin parsing
     fin = open(os.path.join(input_dir_name, file))
     data = []
-
     bpm = int(fin.readline().strip()) # Added to read in variation in BPMs
     tempo = bpm_to_tempo(bpm) # SET NEW TEMPO
-    clock_duration = ((tempo/1000000)/24)/16
     seconds_to_clock = lambda x : math.floor(x/clock_duration) # calculate how much the clock will fire within a certain duration
+    #TODO: THIS MIGHT BE DEFEATING THE PURPOSE!!! CHECK AUDIO SAMPLE!!!
+    # it does fucking defeat the purpose
+    # nvm its fixed ignore that
 
     for line in fin: # read in every line into data
         if(line == 'eof'): break

@@ -30,10 +30,12 @@ from tensorflow.python.client import device_lib
 print(colored('All libraries loaded', attrs=['bold']))
 from datetime import datetime
 import difflib
+import librosa
 
-chunk_length_seconds = 0.125
 sample_rate = 44000
-sample_per_chunk = int(sample_rate * chunk_length_seconds)
+mel_res = 512
+window_size = 4096
+hop_len = 512
 
 absolute_path = os.path.join('/home/lemonorange/catRemixV2')
 data_root_path = os.path.join(absolute_path, 'data')
@@ -42,10 +44,10 @@ label_data_path = os.path.join(data_root_path, 'rawMid')
 storage_path = os.path.join(absolute_path, 'network')
 
 # Change your training session name here. So for example if you had a session named "cyc1", you put that here.
-cycle_path = 'cyc1'
+cycle_path = 'cycA5'
 
-# Select your network preference here. So for example if you want to test the snapshot "snp_200.h5", you put that here.
-network_path = os.path.join(storage_path, cycle_path, 'snp_fin.h5')
+# Select your network preference here. So for example if you want to test the snapshot "snp_1_200.h5", you put that here.
+network_path = os.path.join(storage_path, cycle_path, 'snp_1_0.h5')
 
 # Read in training and validation loss files
 train_loss_path = os.path.join(storage_path, cycle_path, 'train_loss.txt')
@@ -62,7 +64,7 @@ train_loss_file.seek(0)
 train_loss = []
 for entry in train_loss_file:
     train_loss.append(np.array(
-        [i.split('=')[1] for i in entry.split(';')[:-1]]
+        [i.split('=')[1] for i in entry.split(';')[:-1] if i.split('=')[0]]
     ))
 train_loss = np.array(train_loss)
 
@@ -85,7 +87,7 @@ for i in range(len(loss_names)): # plot the actual data
 
 axis[0].plot(x, zero, color='black', label='optimal loss')
 axis[0].legend()
-axis[0].set_title('Training Loss Over Time (3020 mini-batches)')
+axis[0].set_title('Training Loss Over Time (400 mini-batches)')
 axis[0].set_xlabel('Mini-Batch')
 axis[0].set_ylabel('Loss Value')
 
@@ -94,7 +96,7 @@ for i in range(len(loss_names)): # plot the actual data
         axis[1].plot(x, val_loss[:,i].astype(np.float32), color=loss_colors[i], label=loss_names[i])
 axis[1].plot(x, zero, color='black', label='optimal loss')
 axis[1].legend()
-axis[1].set_title('Validation Loss Over Time (3020 mini-batches)')
+axis[1].set_title('Validation Loss Over Time (400 mini-batches)')
 axis[1].set_xlabel('Mini-Batch')
 axis[1].set_ylabel('Loss Value')
 
@@ -110,40 +112,55 @@ plt.show()
 model = keras.models.load_model(network_path)
 all_files = os.listdir(input_path)
 
-all_files[1]
+file_index = 10
+that_file = all_files[file_index]
+that_file = "rushe.wav"
 
-file = all_files[1]
-file = 'testmusic2_0.wav' # extract a testing file
+that_file
 
-unpaired_input = loader.parse_input(file, input_path) # parse input
-unpaired_label = sync.trim_front(loader.parse_label(file, label_data_path)) # trimming the MIDI and syncing the data
-input, label = sync.sync_data(unpaired_input, unpaired_label, len(unpaired_label)) # pair IO + trim
-label = np.array(loader.encode_multihot(label)) # encode label
+data, sr = loader.parse_input(that_file, input_path, norm=False)
+data2, sr = loader.parse_input("dancebg.wav", input_path, norm=False)
 
-unpaired_input.shape[0]//5500
-label.shape
+Audio(data, rate=sample_rate) # preview the audio
 
-Audio(unpaired_input, rate=sample_rate)
+file = that_file
+# file = 'testmusic2_0.wav' # extract a testing file
 
-input = np.array(input)
-input = np.reshape(input, (input.shape[0], 1, input.shape[1])) # reshape to a tensor which the neural net can use
+unpaired_input, sr = loader.parse_input(file, input_path) # parse input
+unpaired_label, bpm = loader.parse_label(file, label_data_path) # trimming the MIDI and syncing the data
+unpaired_label = sync.trim_front(unpaired_label)
+
+ML = loader.get_mel_spec(unpaired_input, mel_res, sr, window_size, hop_len)
+input = loader.get_mel_spec(unpaired_input, mel_res, sr, window_size, hop_len)
+
+# input, label = sync.sync_data(ML, unpaired_label, bpm, hop_len) # pair IO + trim
+label = np.array(loader.encode_multihot(unpaired_label)) # encode label
+
+chunk_size = int(ML.shape[0] / label.shape[0])-5
+chunk_size = 10
+chunk_size
+
+input = loader.create_input_matrix(input, chunk_size, chunk_size)
+
+input = np.reshape(input, (input.shape[0], input.shape[1], input.shape[2], 1))
 input.shape
 
 # ============================================== PREDICTION ==============================================
 
 g = systemClock.time()
-output = model.predict(input*3)
+output = model.predict(input)
 h = systemClock.time()
 
+np.max(output)
+np.min(output)
+
 h-g
-
 # output = model.predict(input*3)
-
 note_to_freq = lambda note : np.float32(440 * 2 ** ((note-69)/12))
 note_to_freq_with_offset = lambda note : np.float32(440 * 2 ** (((note+21)-69)/12))
 
 # parse the multi-hot encoding into raw numbers
-threshold = 0.9
+threshold = 0.5
 # threshold = 0.9
 
 note_out = []
@@ -159,7 +176,7 @@ for point in output: # read in all data points
 encoded_note_out = loader.encode_multihot(note_out)
 
 sample_rate = 44000
-length = np.float32(sample_per_chunk/sample_rate)
+length = np.float32((hop_len * chunk_size)/sample_rate)
 
 t = np.linspace(0, length, int(sample_rate * length))  #  Produces a sample lengthed note
 
@@ -183,30 +200,31 @@ for i in range(len(note_out)):
             overall += np.cos(note_to_freq_with_offset(freq) * 2 * np.pi * t)
         else:
             continue
-    final.append(overall)
+    final.append(np.hanning(overall.shape[0]) * overall)
+    # final.append(overall)
 
 gen = np.concatenate(final)
 
-flattend_input = input.reshape((1,-1))[0]
-
-note_out
+len(note_out)
 
 # Plot out the waveforms
-plt.plot([sum(i) for i in note_out], color='green')
-plt.plot(loader.normalize(gen[4000000:5000000],3), color='red')
-plt.plot(flattend_input, color='blue', label='raw sound data')
+data.size / 25
+6285.16/44000
+
+librosa.display.specshow(ML.transpose(), sr=sr, hop_length=hop_len, x_axis='time', y_axis='log') # this is the original sound wave
+plt.plot([sum(i) for i in note_out], color='green') # this is the midi sound wave (sorta)
+# plt.plot(loader.normalize(gen[4000000:5000000],3), color='red')
+# plt.plot(flattend_input, color='blue', label='raw sound data')
 
 
 # plt.legend()
 # plt.title('MIDI transcription result by BLSTM')
 
 # plt.show()
-
-Audio(flattend_input[4000000:5000000], rate=sample_rate) # this is the original
-Audio(gen[4000000:5000000], rate=sample_rate) # this is the transcribed
-Audio((flattend_input[4000000:5000000])+loader.normalize(gen[4000000:5000000], 3), rate=sample_rate) # this is the transcribed and original
-
-
+# this is blueshift by exurb1a
+Audio(unpaired_input, rate=sample_rate) # this is the original sounds random I know but bear with me
+Audio(gen, rate=sample_rate) # this is transcribed by an AI in less than 200 miliseconds
+Audio(gen[:-1] + data2[:gen.shape[0]-1], rate=sample_rate) # this is them combined transcirbed + original
 
 # CAT PITCH SHIFT ALGORITHM
 # First, smooth out the waveforms. override notes that last for 0.125ms with the previous note
@@ -225,14 +243,19 @@ plt.plot(np.array([sum(i) for i in note_out][:500000]), color='green', label='Ra
 plt.plot([sum(i) for i in smoothed_note_out][:500000], color='magenta', label='Smoothed Raw MIDI by AI')
 
 smoothed_final = []
+smooth_aggression = -1
 # loop through all note vectors and synthesize them into sine waves
-for i in range(len(smoothed_note_out)):
+for i in range(len(smoothed_note_out)-1):
     # silence is represented by an all zero vector!
     if(np.all(smoothed_encoded_note_out[i] == np.zeros(88))): # the case that it is silent
         smoothed_final.append(np.sin(0*t)) # append a silence to the final sequence
         continue
 
-    # if it is not a silence, create the fourier transform
+    # if it is not a silence, check if it is too similar, create the fourier transform
+    if(np.sum(smoothed_note_out[i] != smoothed_note_out[i+1]) <= smooth_aggression and i != 0):
+        smoothed_final.append(smoothed_final[i-1]) # append a silence to the final sequence
+        continue
+
     if (smoothed_note_out[i][0]<87 and smoothed_note_out[i][0]>5):
         overall = np.cos(note_to_freq_with_offset(smoothed_note_out[i][0]) * 2 * np.pi * t)
     else:
@@ -246,13 +269,13 @@ for i in range(len(smoothed_note_out)):
 
 smoothed_gen = np.concatenate(smoothed_final)
 
-prank = loader.parse_input('testmusic2_0.wav', input_path) # parse input
+prank = loader.parse_input(that_file, input_path) # parse input
 Audio(loader.normalize(smoothed_gen,2), rate=sample_rate)
 
 offsetted_note_out = [i-39 for i in [1000]+smoothed_note_out]
 
 # generate all necessary wav files for assembly
-output_dir_name = os.path.join(absolute_path, 'data', 'exurbia-tdww')
+output_dir_name = os.path.join(absolute_path, 'data', 'dancemonkey')
 try:
     os.makedirs(output_dir_name)
     print(colored("Successfully opened output directory.".format(**locals()), 'green'))

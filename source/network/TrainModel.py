@@ -1,6 +1,5 @@
 from termcolor import colored
 print(colored('Loading libraries...', attrs=['bold']))
-
 import os
 import sys
 import math
@@ -17,7 +16,7 @@ import tensorflow as tf
 print(colored('Loading keras...', attrs=['bold']))
 import keras
 from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Dense, Dropout, LSTM, BatchNormalization, Bidirectional
+from tensorflow.keras.layers import Dense, Dropout, LSTM, BatchNormalization, Bidirectional, TimeDistributed, Conv1D, MaxPooling1D, Flatten, InputLayer, Input
 import keras.backend as K
 from keras.optimizers import Adam, SGD, RMSprop, Adagrad
 from tensorflow.python.client import device_lib
@@ -39,22 +38,20 @@ for gpu in tf.config.experimental.list_physical_devices('GPU'):
 absolute_path = os.path.join('/home/lemonorange/catRemixV2')
 data_root_path = os.path.join(absolute_path, 'data')
 input_path = os.path.join(data_root_path, 'wav')
-ground_truth_data_path = os.path.join(data_root_path, 'rawMid')
+label_data_path = os.path.join(data_root_path, 'rawMid')
 print(colored('\n==================== TRAIN START ====================\n', 'grey', 'on_yellow'))
 print('Attempting to opening dataset paths...')
 if(not os.path.exists(input_path)):
     raise FileNotFoundError('Input path does not exist! Are you sure all of the data are generated?') # check if path exists
-if(not os.path.exists(ground_truth_data_path)):
+if(not os.path.exists(label_data_path)):
     raise FileNotFoundError('Label path does not exist! Are you sure all of the data are generated?') # check if path exists
 
 # DATA PARTITIONS
 training_files = []
-testing_files = []
 validation_files = []
 
 # DATA PARTITIONING
-val_perc=0.001 # partitioning parameters
-test_perc=0.005 # partitioning parameters
+val_perc=0.005 # partitioning parameters
 
 print('Attempting to partition data...')
 all_files = os.listdir(input_path)
@@ -62,53 +59,77 @@ data_size = len(all_files)
 # partition validation files
 validation_files = np.array(all_files[0 : int( data_size * val_perc )])
 all_files = all_files[int( data_size * val_perc ) :] # trim original files
-# partition test files
-testing_files = np.array(all_files[0 : int( data_size * test_perc )])
-training_files = np.array(all_files[int( data_size * test_perc ) :])
+# partition the rest into training files
+training_files = np.array(all_files[:])
 
 validation_file_size = validation_files.shape[0] # size of validation
-testing_files_size = testing_files.shape[0] # size of testing
-training_files_size = training_files.shape[0] # size of training
+training_file_size = training_files.shape[0] # size of training
+
 # DATA PARTITIONING Finished
 print(colored('Data partitioned successfully!', 'green'))
 print(colored('  |__ {validation_file_size} validation data points'.format(**locals()), 'green'))
-print(colored('  |__ {testing_files_size} testing data points'.format(**locals()), 'green'))
-print(colored('  |__ {training_files_size} training data points\n'.format(**locals()), 'green'))
+print(colored('  |__ {training_file_size} training data points\n'.format(**locals()), 'green'))
 
 # DATA details
-chunk_length_seconds = 0.125
+# chunk_length_seconds = 0.125 # DEPRECATED
 sample_rate = 44000
-sample_per_chunk = int(sample_rate * chunk_length_seconds)
-n_batch = training_files_size//300
-save_interval = 100 # save an instance every X min-batch (makeshift early stopping)
+# sample_per_chunk = int(sample_rate * chunk_length_seconds) # DEPRECATED
+n_batch = 30 # the amount of batches needed, in this case, N file per batch
+save_interval = 400 # save an instance every X min-batch (makeshift early stopping)
 epochs = 1
-data_cut_off = training_files_size
-
-# after file partitioning is done, we can start building the network and its definitions.
-# It's not the best idea to do it directly in the main file but i am fucking tired so whatever.
+data_cut_off = training_file_size # how much files are gonna be processed, with training_file_size being the maximum
 
 # ==================== NETWORK DEFINITIONS ====================
-def make_model():
-    m = Sequential()
-    m.add(Bidirectional(LSTM(500, return_sequences=True, activation='relu'), merge_mode='sum',
-        batch_input_shape=((None, 1, sample_per_chunk))))
-    # Mini-Batch-Size, sequence length, 1, chunk size
-    m.add(BatchNormalization())
-    # m.add(LSTM(400, return_sequences=True, activation='relu'))
-    # m.add(LSTM(400, return_sequences=True, go_backwards=True, activation='relu'))
-    m.add(Bidirectional(LSTM(400, return_sequences=True, activation='relu'), merge_mode='sum'))
-    m.add(BatchNormalization())
-    # m.add(LSTM(400, return_sequences=True, activation='relu'))
-    # m.add(LSTM(400, return_sequences=True, go_backwards=True, activation='relu'))
-    # m.add(BatchNormalization())
-    m.add(Bidirectional(LSTM(200, activation='relu'), merge_mode='sum'))
-    m.add(BatchNormalization())
+def make_model(mel_res):
+    model = Sequential()
+    # extract features and dropout
+    model.add(TimeDistributed(
+        Conv1D(64, 3, activation='relu'),
+            batch_input_shape=(None, None, mel_res, 1) # batch_size, window size, mel res, channel
+        )
+    )
+    model.add(TimeDistributed(MaxPooling1D(2, strides=2)))
 
-    m.add(Dense(120, activation='relu'))
-    m.add(Dense(90, activation='relu'))
-    m.add(Dense(88, activation='sigmoid'))
+    model.add(TimeDistributed(Conv1D(128, 4, activation='relu')))
+    # model.add(TimeDistributed(MaxPooling1D(2, strides=2)))
 
-    return m
+    # model.add(TimeDistributed(Conv1D(256, 4, activation='relu')))
+    # model.add(TimeDistributed(MaxPooling1D(2, strides=2)))
+
+    # flatten feature per time step w/ dropout
+    model.add(TimeDistributed(BatchNormalization()))
+    model.add(TimeDistributed(Flatten()))
+
+    # this creates a time distributed input to the LSTM
+    # input to BLSTM (this will be a 2 BLSTM layer model)
+    model.add(
+        Bidirectional(
+            LSTM(500, return_sequences=True, activation='relu'),
+            merge_mode='sum'
+        )
+    )
+
+    model.add(
+        Bidirectional(
+            LSTM(400, return_sequences=True, activation='relu'),
+            merge_mode='sum'
+        )
+    )
+
+    model.add(
+        Bidirectional(
+            LSTM(200, return_sequences=False, activation='relu'),
+            merge_mode='sum'
+        )
+    )
+
+    model.add(BatchNormalization())
+
+    # classifier with sigmoid activation for multilabel
+    model.add(Dense(120, activation='relu'))
+    model.add(Dense(90, activation='relu'))
+    model.add(Dense(88, activation='sigmoid'))
+    return model
 
 # ==================== LOSS & OPTIMIZER DEFINITIONS ====================
 loss_list = [
@@ -125,13 +146,18 @@ loss_label = [ # how the loss functions will be named when displayed on a graph
     'Mean_Absolute_Error',
     'Sigmoid_CSE_with_Logits',
 ]
-default_loss_index = 0
+default_loss_index = 0 # loss selection (0 means using the first loss function, 1 the second one, and so on).
 
-# optimizer selections
+# create optimizer
 default_opt = Adam(learning_rate=1e-3)
 
+# input parameters
+mel_res = 512
+window_size = 4096
+hop_len = 1024
+
 # ==================== RECORDING PROCESS ====================
-def write_loss(losses, labels, fout):
+def write_loss(losses, labels, fout): # create loss recording function
     i = 0
     write_out = ''
     for loss in losses:
@@ -146,29 +172,43 @@ def write_loss(losses, labels, fout):
     foutf.close()
 
 # ==================== TRAINING PROCESS ====================
-def train_step(input, ground_truth, model, train_fout=None, val_fout=None): # training input and ground truth should already be synchronized and encoded
-    # fout is there for if we want to record the loss data
+# training input and label should be synchronized and encoded (label in onehot)!!!
+def train_step(input, label, model, train_fout=None, val_fout=None):
+    # {X}_fout is there for if we want to record the loss data
+
     # get a validation input
     validation_input_name = np.random.choice(validation_files)
     # parse the validation set
-    validation_input = loader.parse_input(validation_input_name, input_path)
-    validation_label = sync.trim_front(loader.parse_label(validation_input_name, ground_truth_data_path))
-    val_input, val_label = sync.sync_data(validation_input, validation_label, len(validation_label))
+    validation_input, val_sr = loader.parse_input(validation_input_name, input_path) # get input data and sample rate
+    validation_label, val_bpm = loader.parse_label(validation_input_name, label_data_path) # get label data and bpm
+
+    # generate mel spectrogram
+    val_ml = loader.get_mel_spec(validation_input, mel_res, val_sr, window_size, hop_len)
+
+    # trim the label data
+    validation_label = sync.trim_front(validation_label)
+
+    val_input, val_label = sync.sync_data(val_ml, validation_label, val_bpm, hop_len)
     val_label = np.array(loader.encode_multihot(val_label)) # encode to multi-hot
 
-    val_input = np.array(val_input)
-    val_input = np.reshape(val_input, (val_input.shape[0], 1, val_input.shape[1])) # reshape to a tensor which the neural net can use (batch_size, 1, samples_per_batch)
+    val_input = np.reshape(val_input, (val_input.shape[0], val_input.shape[1], val_input.shape[2], 1))
+    # reshape to a tensor which the neural net can use (mini_batch_size, window_size, mel_resolution, channel)
 
     with tf.GradientTape() as tape: # Start calculating the gradient and applying it
         # generate the predictions
         # it is garenteed the ground truth and prediction will have the same shape
-        training_prediction = model(input)
-        validation_prediction = model(val_input)
+        training_prediction = [] # crate temporary array of predictions so we can concat them later for mini-batch processing
+        for sample in input:
+            temp_pred = model(sample) # get a training pred
+            training_prediction.append(temp_pred)
+        # concatinate the perdictions
+        training_prediction = tf.concat(training_prediction, 0)
+        validation_prediction = model(val_input) # get a validation pred
 
-        training_losses = [x(ground_truth, training_prediction) for x in loss_list] # store all training losses
+        training_losses = [x(label, training_prediction) for x in loss_list] # store all training losses
         validation_losses = [x(val_label, validation_prediction) for x in loss_list] # store all validation losses
-        applicable_loss = training_losses[default_loss_index]
-        visible_loss = validation_losses[default_loss_index]
+        applicable_loss = training_losses[default_loss_index] # idk why i named it this but this is the training loss
+        visible_loss = validation_losses[default_loss_index] # validation loss
 
         # store loss
         if(train_fout != None):
@@ -204,7 +244,7 @@ val_loss_tracking = os.path.join(network_write_path, 'val_loss.txt')
 print(colored('>>> Attempting to create neural network...', 'yellow'))
 
 # initialize model and training processes
-model = make_model() # create a new model instance
+model = make_model(mel_res) # create a new model instance
 print(colored('Compiling network...', 'yellow'))
 model.compile()
 
@@ -238,7 +278,7 @@ print(colored('\n>>> Training...\n', 'green', attrs=['bold']))
 #
 # for i in training_files[:n_batch]:
 #     unpaired_input = loader.parse_input(i, input_path) # parse input
-#     unpaired_ground_truth = sync.trim_front(loader.parse_label(i, ground_truth_data_path)) # parse output
+#     unpaired_ground_truth = sync.trim_front(loader.parse_label(i, label_data_path)) # parse output
 #     input, ground_truth = sync.sync_data(unpaired_input, unpaired_ground_truth, len(unpaired_ground_truth)) # pair IO + trim
 #     ground_truth = np.array(loader.encode_multihot(ground_truth))
 #
@@ -280,31 +320,35 @@ for i in range(1,epochs+1):
 
     # loop through data with n_batch per mini-batch until file_range ends
     for j in file_range: # train with data index
-        # set loop header to reading file state
-        header = colored('Reading Data...', 'grey', 'on_yellow') +'          | ' + colored('Last Trn Loss: ', 'green') + colored(str(train_loss), 'green', attrs=['bold', 'reverse']) + '; ' + colored('Last Val Loss: ', 'green') + colored(str(val_loss),'green', attrs=['bold', 'reverse'])
-        file_range.set_description(header)
-        file_range.refresh()
-
         # parse mini_batch IO
-        temp_input = []
+        X = []
         temp_out = []
         # ===== READING IN TRAINING FILES =====
         for file in (training_files[j : j+n_batch]): # loop through current mini-batch
-            unpaired_input = loader.parse_input(file, input_path) # parse input
+            # set loop header to reading file state
+            header = colored('Reading and processing file: [{file}]...'.format(**locals()), 'grey', 'on_yellow') +'          | ' + colored('Last Trn Loss: ', 'green') + colored(str(train_loss), 'green', attrs=['bold', 'reverse']) + '; ' + colored('Last Val Loss: ', 'green') + colored(str(val_loss),'green', attrs=['bold', 'reverse'])
+            file_range.set_description(header)
+            file_range.refresh()
+
+            unpaired_input, sr = loader.parse_input(file, input_path) # parse input
             if(unpaired_input.size == 0):
                 print(colored('skipped {file}'.format(**locals()), 'red'))
                 continue
-            unpaired_label = sync.trim_front(loader.parse_label(file, ground_truth_data_path)) # trimming the MIDI and syncying the data
-            input, label = sync.sync_data(unpaired_input, unpaired_label, len(unpaired_label)) # pair IO + trim
+            # create mel spectrogram
+            unpaired_input_ml = loader.get_mel_spec(unpaired_input, mel_res, sr, window_size, hop_len)
+            # get label for input
+            unpaired_label, bpm = loader.parse_label(file, label_data_path)
+            unpaired_label = sync.trim_front(unpaired_label) # trimming the MIDI and syncying the data
+
+            input, label = sync.sync_data(unpaired_input_ml, unpaired_label, bpm, hop_len) # pair IO
+            # 7480_4 cocks it up
             label = np.array(loader.encode_multihot(label)) # encode label
 
-            input = np.array(input)
-            input = np.reshape(input, (input.shape[0], 1, input.shape[1])) # reshape to a tensor which the neural net can use
+            input = np.reshape(input, (input.shape[0], input.shape[1], input.shape[2], 1)) # reshape to a tensor which the neural net can use
 
-            temp_input.append(input) # add to stash
+            X.append(input) # add to stash
             temp_out.append(label) # add to stash
 
-        X = np.concatenate(temp_input)
         y = np.concatenate(temp_out)
 
         # TODO: implement make shift early stopping system
@@ -324,7 +368,7 @@ for i in range(1,epochs+1):
         # STEP 4: save snapshot if necessary
         if(on_batch%save_interval == 0):
             batch_num = j//n_batch
-            model.save(os.path.join(network_write_path, 'snp_{batch_num}.h5'.format(**locals())))
+            model.save(os.path.join(network_write_path, 'snp_{i}_{batch_num}.h5'.format(**locals())))
         on_batch += 1
 
 # close loss tracker, assuming program terminated correctly
@@ -332,13 +376,13 @@ model.save(os.path.join(network_write_path, 'snp_fin.h5'))
 
 # THESE CODE ARE FOR TESTING PURPOSES ONLY.
 # test_in = loader.parse_input(training_files[100], input_path)
-# test_gt = sync.trim_front(loader.parse_label(training_files[100], ground_truth_data_path))
+# test_gt = sync.trim_front(loader.parse_label(training_files[100], label_data_path))
 # train_set, label_set = sync.sync_data(test_in, test_gt, len(test_gt))
 #
 # validation_input_name = np.random.choice(validation_files)
 # # parse the validation set
 # validation_input = loader.parse_input(validation_input_name, input_path)
-# validation_label = sync.trim_front(loader.parse_label(validation_input_name, ground_truth_data_path))
+# validation_label = sync.trim_front(loader.parse_label(validation_input_name, label_data_path))
 # val_input, val_label = sync.sync_data(validation_input, validation_label, len(validation_label))
 # val_label = loader.encode_multihot(val_label) # encode to multi-hot
 #

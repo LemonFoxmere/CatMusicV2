@@ -20,9 +20,12 @@ print(colored('All libraries loaded', attrs=['bold']))
 from datetime import datetime
 import difflib
 
-chunk_length_seconds = 0.125
 sample_rate = 44100
-sample_per_chunk = int(sample_rate * chunk_length_seconds)
+hop_length = 512
+window_size = 10
+
+chunk_length_seconds = (hop_length * window_size)/sample_rate
+sample_per_chunk = hop_length * window_size
 
 absolute_path = os.path.join('/home/lemonorange/catRemixV2')
 data_root_path = os.path.join(absolute_path, 'data')
@@ -30,8 +33,16 @@ input_path = os.path.join(data_root_path, 'wav')
 label_data_path = os.path.join(data_root_path, 'rawMid')
 storage_path = os.path.join(absolute_path, 'network')
 
+that_file = "dancebg.wav"
+
+that_file
+
+data, sr = loader.parse_input(that_file, input_path, norm=False)
+
+Audio(data, rate=sample_rate) # preview the audio
+
 # read_path = os.path.join(data_root_path, 'lol-phoenix')
-read_path = os.path.join(data_root_path, 'lol-phoenix')
+read_path = os.path.join(data_root_path, 'dancemonkey')
 
 files = sorted(os.listdir(read_path), key = lambda x : int(x.split('_')[0]))
 max_length = chunk_length_seconds * (int(files[-1].split('_')[0])+10)
@@ -55,11 +66,12 @@ for i in range(max_note_index+1):
     note_files = get_note(i)
     if(len(note_files) == 0): continue # if the current note is empty, then continue
     # if it is not empty, read in all notes and fuse them together
-    notes = [loader.parse_input(j, read_path, norm=False) for j in note_files]
+    notes = []
+    notes = [loader.parse_input(j, read_path, norm=False)[0] for j in note_files]
     fused = sum(notes) # they are garenteed to have the same shape
     # add in the fused
     start_index = i * sample_per_chunk # get start index of where the thing should be placed
     duration = i * fused.size
     overall_audio[start_index : start_index + duration] = fused.tolist()
 
-Audio(overall_audio, rate=sample_rate)
+Audio(overall_audio[:432051]+data, rate=sample_rate)

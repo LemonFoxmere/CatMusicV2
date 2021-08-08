@@ -7,13 +7,14 @@
 | :-: | :-: |
 Create [Accuracy Tracker*](https://stats.stackexchange.com/questions/12702/what-are-the-measure-for-accuracy-of-multilabel-data#168952) | NS
 Test Down Sampling effect | FFR
-Modify and improve data generation algorithm | IP
-Re-check functionality of Data syncing algorithm | NS
-Create dynamic equalizer | NS
-Create frequency limiter | NS
-Create MEL spectrogram | NS
-Create data sampling and queuing process | NS
-Create new Neural Network architecture | NS
+Modify and improve data generation algorithm | C
+Re-check functionality of Data syncing algorithm | C
+Create dynamic equalizer | FFR
+Create high pass filter | C
+Create MEL spectrogram | C
+Recreate data syncing algorithm | IP
+Create data sampling and queuing process | IP
+Create new Neural Network architecture | IP
 Test architecture efficacy | NS
 Test hyper parameter tuning | NS
 Test instrument selections | NS
